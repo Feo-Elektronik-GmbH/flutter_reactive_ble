@@ -30,6 +30,9 @@ void main() {
     late StreamController<List<int>> _argsStreamController;
     late StreamController<List<int>> _scanStreamController;
     late StreamController<List<int>> _statusStreamController;
+    late StreamController<List<int>> _connectedCentralChannel;
+    late StreamController<List<int>> _charCentralUpdateChannel;
+    late StreamController<List<int>> _didModifyservicesChannel;
 
     setUp(() {
       _argsConverter = MockArgsToProtobufConverter();
@@ -39,6 +42,9 @@ void main() {
       _argsStreamController = StreamController();
       _scanStreamController = StreamController();
       _statusStreamController = StreamController();
+      _connectedCentralChannel = StreamController();
+      _charCentralUpdateChannel = StreamController();
+      _didModifyservicesChannel = StreamController();
 
       when(_methodChannel.invokeMethod<void>(any, any)).thenAnswer(
         (_) async => 0,
@@ -52,6 +58,9 @@ void main() {
         charUpdateChannel: _argsStreamController.stream,
         bleDeviceScanChannel: _scanStreamController.stream,
         bleStatusChannel: _statusStreamController.stream,
+        connectedCentralChannel: _connectedCentralChannel.stream,
+        charCentralUpdateChannel: _charCentralUpdateChannel.stream,
+        didModifyServices: _didModifyservicesChannel.stream,
       );
     });
 

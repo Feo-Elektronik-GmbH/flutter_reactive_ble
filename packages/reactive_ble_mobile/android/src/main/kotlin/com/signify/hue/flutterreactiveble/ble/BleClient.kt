@@ -1,5 +1,8 @@
 package com.signify.hue.flutterreactiveble.ble
 
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
+import android.content.Context
 import android.os.ParcelUuid
 import com.polidea.rxandroidble2.RxBleDeviceServices
 import com.signify.hue.flutterreactiveble.model.ScanMode
@@ -70,7 +73,7 @@ interface BleClient {
     fun startGattServer()
     fun stopGattServer()
     fun checkIfOldInetBoxBondingExists(deviceId: String): Boolean
-    fun removeInetBoxBonding(deviceId: String): Boolean
+    fun removeInetBoxBonding(deviceId: String, forceDelete: Boolean, context: Context?): Boolean
     fun writeLocalCharacteristic(
         deviceId: String,
         characteristic: UUID,

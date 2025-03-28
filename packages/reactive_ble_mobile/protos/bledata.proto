@@ -159,4 +159,5 @@ message GetConnectionInfo {
 
 message BtMacAddressInfo {
     string deviceId = 1;
+    bool forceDelete = 2;
 }

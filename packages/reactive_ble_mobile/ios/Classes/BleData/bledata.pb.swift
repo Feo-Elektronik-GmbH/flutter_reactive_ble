@@ -644,6 +644,8 @@ struct BtMacAddressInfo {
 
   var deviceID: String = String()
 
+  var forceDelete: Bool = false
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
@@ -1933,6 +1935,7 @@ extension BtMacAddressInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
   static let protoMessageName: String = "BtMacAddressInfo"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "deviceId"),
+    2: .same(proto: "forceDelete"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1942,6 +1945,7 @@ extension BtMacAddressInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.deviceID) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.forceDelete) }()
       default: break
       }
     }
@@ -1951,11 +1955,15 @@ extension BtMacAddressInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     if !self.deviceID.isEmpty {
       try visitor.visitSingularStringField(value: self.deviceID, fieldNumber: 1)
     }
+    if self.forceDelete != false {
+      try visitor.visitSingularBoolField(value: self.forceDelete, fieldNumber: 2)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: BtMacAddressInfo, rhs: BtMacAddressInfo) -> Bool {
     if lhs.deviceID != rhs.deviceID {return false}
+    if lhs.forceDelete != rhs.forceDelete {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

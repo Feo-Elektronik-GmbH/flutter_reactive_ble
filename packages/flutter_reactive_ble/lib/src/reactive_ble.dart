@@ -234,8 +234,9 @@ class FlutterReactiveBle {
   Future<bool> checkIfOldInetBoxBondingExists(String address) async =>
       _blePlatform.checkIfOldInetBoxBondingExists(address);
 
-  Future<bool> removeInetBoxBonding(String address) async =>
-      _blePlatform.removeInetBoxBonding(address);
+  Future<bool> removeInetBoxBonding(String address,
+          {bool forceDelete = false}) async =>
+      _blePlatform.removeInetBoxBonding(address, forceDelete: forceDelete);
 
   Future<void> writeLocalCharacteristic(
       QualifiedCharacteristic characteristic, List<int> value) async {

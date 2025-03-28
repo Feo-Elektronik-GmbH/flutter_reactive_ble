@@ -352,25 +352,27 @@ class ReactiveBleMobilePlatform extends ReactiveBlePlatform {
           .then((data) => _protobufConverter.discoveredServicesFrom(data!));
 
   @override
-  Future<bool> checkIfOldInetBoxBondingExists(String deviceId) async =>
+  Future<bool> checkIfOldInetBoxBondingExists(
+          String deviceId) async =>
       _bleMethodChannel
           .invokeMethod<bool>(
             "checkIfOldInetBoxBondingExists",
             _argsToProtobufConverter
-                .createBtMacAddressInfo(deviceId)
+                .createBtMacAddressInfo(deviceId, forceDelete: false)
                 .writeToBuffer(),
           )
           .then<bool>((bool? value) => value ?? false);
 
   @override
-  Future<bool> removeInetBoxBonding(String deviceId) async => _bleMethodChannel
-      .invokeMethod<bool>(
-        "removeInetBoxBonding",
-        _argsToProtobufConverter
-            .createBtMacAddressInfo(deviceId)
-            .writeToBuffer(),
-      )
-      .then<bool>((bool? value) => value ?? false);
+  Future<bool> removeInetBoxBonding(String deviceId, {bool forceDelete = false}) async =>
+      _bleMethodChannel
+          .invokeMethod<bool>(
+            "removeInetBoxBonding",
+            _argsToProtobufConverter
+                .createBtMacAddressInfo(deviceId, forceDelete:forceDelete)
+                .writeToBuffer(),
+          )
+          .then<bool>((bool? value) => value ?? false);
 
   @override
   Future<bool> isDeviceConnected(String deviceId) async => _bleMethodChannel

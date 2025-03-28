@@ -1,9 +1,17 @@
+# TAG v2.0.0 - Test
+
+- added force flag to force deletion of inet box bonding
+- added tests
+- added permission checks
+
 # TAG v1.1.128 - Test
 
 - Add SDK check for writing gatt descriptor, as currently used function were deprecated in sdk 33.
 - Add logs
 
 # TAG v1.1.127 - Stable
+# TAG v1.1.127 - Test
+# TAG v1.1.128 - Test
 
 - check if either the connected device address matches to the bonding mac address or the device name contains "iNet Box" to remove the bonding
 

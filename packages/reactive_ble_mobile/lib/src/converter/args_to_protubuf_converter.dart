@@ -49,7 +49,9 @@ abstract class ArgsToProtobufConverter {
   pb.DiscoverServicesRequest createDiscoverServicesRequest(String deviceId);
 
   pb.GetConnectionRequest createGetConnectionRequest(String deviceId);
-  pb.BtMacAddressInfo createBtMacAddressInfo(String address);
+
+  pb.BtMacAddressInfo createBtMacAddressInfo(String address,
+      {bool forceDelete = false});
 }
 
 class ArgsToProtobufConverterImpl implements ArgsToProtobufConverter {
@@ -209,8 +211,11 @@ class ArgsToProtobufConverterImpl implements ArgsToProtobufConverter {
   }
 
   @override
-  pb.BtMacAddressInfo createBtMacAddressInfo(String address) {
-    final args = pb.BtMacAddressInfo()..deviceId = address;
+  pb.BtMacAddressInfo createBtMacAddressInfo(String address,
+      {bool forceDelete = false}) {
+    final args = pb.BtMacAddressInfo()
+      ..deviceId = address
+      ..forceDelete = forceDelete;
     return args;
   }
 }

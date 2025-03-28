@@ -73,8 +73,7 @@ abstract class ReactiveBlePlatform extends PlatformInterface {
   /// Tells the app that an service indication was triggered on iOS. So one
   /// can rediscover services.
   Stream<void> get didModifyServices {
-    throw UnimplementedError(
-        'didModifyServices has not been implemented.');
+    throw UnimplementedError('didModifyServices has not been implemented.');
   }
 
   /// Initializes the ble plugin platform specific counter parts.
@@ -239,7 +238,8 @@ abstract class ReactiveBlePlatform extends PlatformInterface {
         'checkIfOldInetBoxBondingExists has not been implemented.');
   }
 
-  Future<bool> removeInetBoxBonding(String deviceId) {
+  Future<bool> removeInetBoxBonding(String deviceId,
+      {bool forceDelete = false}) {
     throw UnimplementedError('RemoveInetBoxBonding has not been implemented.');
   }
 
