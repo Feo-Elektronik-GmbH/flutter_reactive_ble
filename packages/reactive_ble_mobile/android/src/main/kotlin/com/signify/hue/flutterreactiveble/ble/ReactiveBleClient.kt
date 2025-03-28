@@ -54,18 +54,6 @@ private var mBluetoothGattServer: BluetoothGattServer? = null
 private var mBluetoothGatt: BluetoothGatt? = null
 private lateinit var mCentralBluetoothDevice: BluetoothDevice
 
-private var advertiseCallback: AdvertiseCallback = object : AdvertiseCallback() {
-    override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
-        Log.d("adv", "success")
-        super.onStartSuccess(settingsInEffect)
-    }
-
-    override fun onStartFailure(errorCode: Int) {
-        Log.d("adv", errorCode.toString())
-        super.onStartFailure(errorCode)
-    }
-}
-
 @Suppress("TooManyFunctions")
 open class ReactiveBleClient(private val context: Context) : BleClient {
     private val connectionQueue = ConnectionQueue()
@@ -93,6 +81,18 @@ open class ReactiveBleClient(private val context: Context) : BleClient {
         lateinit var ctx: Context
 
         internal var gattServices = mutableMapOf<String, BluetoothGattService>()
+
+        private var advertiseCallback: AdvertiseCallback = object : AdvertiseCallback() {
+            override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
+                Log.d("adv", "success")
+                super.onStartSuccess(settingsInEffect)
+            }
+
+            override fun onStartFailure(errorCode: Int) {
+                Log.d("adv", errorCode.toString())
+                super.onStartFailure(errorCode)
+            }
+        }
     }
 
     override val connectionUpdateSubject: PublishSubject<ConnectionUpdate>
@@ -938,7 +938,7 @@ open class ReactiveBleClient(private val context: Context) : BleClient {
             Log.d(tag, "can not stop advertising, advertiser is null")
             return;
         }
-        advertiser.stopAdvertising(advertiseCallback)
+//        advertiser.stopAdvertising(advertiseCallback)
     }
 
     override fun startGattServer() {
