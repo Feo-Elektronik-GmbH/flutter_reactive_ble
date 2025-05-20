@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +11,7 @@ import 'package:reactive_ble_mobile/src/reactive_ble_mobile_platform.dart';
 import 'package:reactive_ble_platform_interface/reactive_ble_platform_interface.dart';
 
 import 'reactive_ble_platform_test.mocks.dart';
+
 // ignore_for_file: avoid_implementing_value_types
 
 @GenerateMocks([
@@ -64,29 +64,26 @@ void main() {
 
     group('connect to device', () {
       late pb.ConnectToDeviceRequest request;
-      StreamSubscription? subscription;
       setUp(() {
         request = pb.ConnectToDeviceRequest();
         when(_argsConverter.createConnectToDeviceArgs('id', any, any))
             .thenReturn(request);
       });
 
-      test('It invokes methodchannel with correct method and arguments',
-          () async {
-        await _sut.connectToDevice('id', {}, null).first;
-        verify(_methodChannel.invokeMethod<void>(
-          'connectToDevice',
-          request.writeToBuffer(),
-        )).called(1);
-      });
+      test(
+        'It invokes methodchannel with correct method and arguments',
+        () async {
+          await _sut.connectToDevice('id', {}, null).first;
+          verify(_methodChannel.invokeMethod<void>(
+            'connectToDevice',
+            request.writeToBuffer(),
+          )).called(1);
+        },
+      );
 
       test('It emits 1 item', () async {
         final length = await _sut.connectToDevice('id', {}, null).length;
         expect(length, 1);
-      });
-
-      tearDown(() async {
-        await subscription?.cancel();
       });
     });
 
@@ -144,9 +141,11 @@ void main() {
 
       setUp(() {
         valueUpdate = CharacteristicValue(
-          characteristic: QualifiedCharacteristic(
+          characteristic: CharacteristicInstance(
             characteristicId: Uuid.parse('FEFF'),
+            characteristicInstanceId: "11",
             serviceId: Uuid.parse('FEFF'),
+            serviceInstanceId: "101",
             deviceId: '123',
           ),
           result: const Result.success([1]),
@@ -170,14 +169,16 @@ void main() {
     });
 
     group('Read characteristic', () {
-      late QualifiedCharacteristic characteristic;
+      late CharacteristicInstance characteristic;
       late pb.ReadCharacteristicRequest request;
 
       setUp(() {
         request = pb.ReadCharacteristicRequest();
-        characteristic = QualifiedCharacteristic(
+        characteristic = CharacteristicInstance(
           characteristicId: Uuid.parse('FEFF'),
+          characteristicInstanceId: "11",
           serviceId: Uuid.parse('FEFF'),
+          serviceInstanceId: "101",
           deviceId: '123',
         );
         when(_argsConverter.createReadCharacteristicRequest(characteristic))
@@ -186,9 +187,12 @@ void main() {
 
       test('It invokes method channel with correct arguments', () async {
         await _sut.readCharacteristic(characteristic).first;
-        verify(_methodChannel.invokeMethod<void>(
-                'readCharacteristic', request.writeToBuffer()))
-            .called(1);
+        verify(
+          _methodChannel.invokeMethod<void>(
+            'readCharacteristic',
+            request.writeToBuffer(),
+          ),
+        ).called(1);
       });
 
       test('It emits 1 item', () async {
@@ -198,7 +202,7 @@ void main() {
     });
 
     group('Write characteristic with response', () {
-      QualifiedCharacteristic characteristic;
+      CharacteristicInstance characteristic;
       const value = [0, 1];
       late pb.WriteCharacteristicRequest request;
       late WriteCharacteristicInfo expectedResult;
@@ -207,25 +211,36 @@ void main() {
       setUp(() async {
         request = pb.WriteCharacteristicRequest();
 
-        characteristic = QualifiedCharacteristic(
+        characteristic = CharacteristicInstance(
           characteristicId: Uuid.parse('FEFF'),
+          characteristicInstanceId: "11",
           serviceId: Uuid.parse('FEFF'),
+          serviceInstanceId: "11",
           deviceId: '123',
         );
 
         expectedResult = WriteCharacteristicInfo(
-            characteristic: characteristic, result: const Result.success(null));
+          characteristic: characteristic,
+          result: const Result.success(null),
+        );
 
         when(_methodChannel.invokeMethod<List<int>?>(any, any)).thenAnswer(
           (_) async => [1],
         );
-        when(_argsConverter.createWriteCharacteristicRequest(
-            characteristic, [0, 1])).thenReturn(request);
+        when(
+          _argsConverter.createWriteCharacteristicRequest(
+            characteristic,
+            [0, 1],
+          ),
+        ).thenReturn(request);
+
         when(_protobufConverter.writeCharacteristicInfoFrom([1]))
             .thenReturn(expectedResult);
 
-        result =
-            await _sut.writeCharacteristicWithResponse(characteristic, value);
+        result = await _sut.writeCharacteristicWithResponse(
+          characteristic,
+          value,
+        );
       });
 
       test('It invokes method channel with correct arguments', () {
@@ -240,7 +255,7 @@ void main() {
     });
 
     group('Write characteristic without response', () {
-      QualifiedCharacteristic characteristic;
+      CharacteristicInstance characteristic;
       const value = [0, 1];
       late pb.WriteCharacteristicRequest request;
       late WriteCharacteristicInfo expectedResult;
@@ -248,28 +263,34 @@ void main() {
 
       setUp(() async {
         request = pb.WriteCharacteristicRequest();
-        characteristic = QualifiedCharacteristic(
+        characteristic = CharacteristicInstance(
           characteristicId: Uuid.parse('FEFF'),
+          characteristicInstanceId: "11",
           serviceId: Uuid.parse('FEFF'),
+          serviceInstanceId: "101",
           deviceId: '123',
         );
 
         expectedResult = WriteCharacteristicInfo(
-            // ignore: void_checks
             characteristic: characteristic,
-            // ignore: void_checks
-            result: const Result.success(Unit()));
+            result: const Result.success(Unit()),
+        );
 
         when(_methodChannel.invokeMethod<List<int>?>(any, any)).thenAnswer(
           (_) async => value,
         );
-        when(_argsConverter.createWriteCharacteristicRequest(
-                characteristic, value))
-            .thenReturn(request);
+        when(
+          _argsConverter.createWriteCharacteristicRequest(
+            characteristic,
+            value,
+          ),
+        ).thenReturn(request);
         when(_protobufConverter.writeCharacteristicInfoFrom(value))
             .thenReturn(expectedResult);
         result = await _sut.writeCharacteristicWithoutResponse(
-            characteristic, value);
+          characteristic,
+          value,
+        );
       });
 
       test('It returns correct value', () async {
@@ -277,31 +298,40 @@ void main() {
       });
 
       test('It invokes method channel with correct arguments', () {
-        verify(_methodChannel.invokeMethod<void>(
-                'writeCharacteristicWithoutResponse', request.writeToBuffer()))
-            .called(1);
+        verify(
+          _methodChannel.invokeMethod<void>(
+            'writeCharacteristicWithoutResponse',
+            request.writeToBuffer(),
+          ),
+        ).called(1);
       });
     });
 
     group('Subscribe to notifications', () {
-      late QualifiedCharacteristic characteristic;
+      late CharacteristicInstance characteristic;
       late pb.NotifyCharacteristicRequest request;
 
       setUp(() {
         request = pb.NotifyCharacteristicRequest();
-        characteristic = QualifiedCharacteristic(
+        characteristic = CharacteristicInstance(
           characteristicId: Uuid.parse('FEFF'),
+          characteristicInstanceId: "11",
           serviceId: Uuid.parse('FEFF'),
+          serviceInstanceId: "101",
           deviceId: '123',
         );
 
-        when(_argsConverter.createNotifyCharacteristicRequest(characteristic))
-            .thenReturn(request);
+        when(
+          _argsConverter.createNotifyCharacteristicRequest(characteristic),
+        ).thenReturn(request);
       });
 
       test('It emits one item', () async {
-        final length =
-            await _sut.subscribeToNotifications(characteristic).length;
+        final length = await _sut
+            .subscribeToNotifications(
+              characteristic,
+            )
+            .length;
         expect(length, 1);
       });
 
@@ -317,20 +347,24 @@ void main() {
     });
 
     group('Stop subscribe to notifications', () {
-      QualifiedCharacteristic characteristic;
+      CharacteristicInstance characteristic;
       late pb.NotifyNoMoreCharacteristicRequest request;
 
       setUp(() async {
         request = pb.NotifyNoMoreCharacteristicRequest();
-        characteristic = QualifiedCharacteristic(
+        characteristic = CharacteristicInstance(
           characteristicId: Uuid.parse('FEFF'),
+          characteristicInstanceId: "11",
           serviceId: Uuid.parse('FEFF'),
+          serviceInstanceId: "101",
           deviceId: '123',
         );
 
-        when(_argsConverter
-                .createNotifyNoMoreCharacteristicRequest(characteristic))
-            .thenReturn(request);
+        when(
+          _argsConverter.createNotifyNoMoreCharacteristicRequest(
+            characteristic,
+          ),
+        ).thenReturn(request);
         await _sut.stopSubscribingToNotifications(characteristic);
       });
 
@@ -390,9 +424,12 @@ void main() {
         when(_methodChannel.invokeMethod<List<int>>(any, any)).thenAnswer(
           (_) async => [1],
         );
-        when(_argsConverter.createChangeConnectionPrioRequest(
-                deviceId, priority))
-            .thenReturn(request);
+        when(
+          _argsConverter.createChangeConnectionPrioRequest(
+            deviceId,
+            priority,
+          ),
+        ).thenReturn(request);
 
         when(_protobufConverter.connectionPriorityInfoFrom([1]))
             .thenReturn(info);
@@ -461,6 +498,7 @@ void main() {
         id: '123',
         name: 'Testdevice',
         rssi: -40,
+        connectable: Connectable.unknown,
         serviceData: const {},
         serviceUuids: const [],
         manufacturerData: Uint8List.fromList([1]),
@@ -517,7 +555,8 @@ void main() {
         request = pb.ClearGattCacheRequest();
         convertedResult =
             const Result<Unit, GenericFailure<ClearGattCacheError>>.success(
-                Unit());
+          Unit(),
+        );
         when(_methodChannel.invokeMethod<List<int>>(any, any)).thenAnswer(
           (_) async => [1],
         );
@@ -573,6 +612,7 @@ void main() {
       final services = [
         DiscoveredService(
           serviceId: Uuid([0x01, 0x02]),
+          serviceInstanceId: "101",
           characteristicIds: const [],
           characteristics: const [],
           includedServices: const [],
@@ -599,9 +639,12 @@ void main() {
       });
 
       test('It invokes methodchannel with correct arguments', () {
-        verify(_methodChannel.invokeMethod<List<int>>(
-                'discoverServices', request.writeToBuffer()))
-            .called(1);
+        verify(
+          _methodChannel.invokeMethod<List<int>>(
+            'discoverServices',
+            request.writeToBuffer(),
+          ),
+        ).called(1);
       });
     });
   });

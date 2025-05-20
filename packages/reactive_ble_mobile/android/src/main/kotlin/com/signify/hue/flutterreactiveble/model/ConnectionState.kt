@@ -20,4 +20,4 @@ fun RxBleConnection.RxBleConnectionState.toConnectionState(): ConnectionState =
         "DISCONNECTING" -> ConnectionState.DISCONNECTING
         "FORCEDISCONNECTED" -> ConnectionState.FORCEDISCONNECTED
         else -> ConnectionState.UNKNOWN
-}
+    }
