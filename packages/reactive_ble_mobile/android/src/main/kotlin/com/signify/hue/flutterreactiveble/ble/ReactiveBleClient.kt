@@ -59,6 +59,7 @@ open class ReactiveBleClient(private val context: Context) : BleClient {
     private var bondedStateActiveBefore = false;
     private var deviceId: String = "";
 
+
     companion object {
         // this needs to be in companion update since backgroundisolates respawn the eventchannels
         // Fix for https://github.com/PhilipsHue/flutter_reactive_ble/issues/277
@@ -79,33 +80,41 @@ open class ReactiveBleClient(private val context: Context) : BleClient {
         internal var gattServices = mutableMapOf<String, BluetoothGattService>()
 
         private var currentAdvertisingSet: AdvertisingSet? = null
+        private var includeDeviceName = true
 
         private var advertisingSetCallback: AdvertisingSetCallback =
             @RequiresApi(Build.VERSION_CODES.O) object : AdvertisingSetCallback() {
                 override fun onAdvertisingSetStarted(
-                    advertisingSet: AdvertisingSet, txPower: Int, status: Int
+                    advertisingSet: AdvertisingSet?, txPower: Int, status: Int
                 ) {
+                    if (status != AdvertisingSetCallback.ADVERTISE_SUCCESS) {
+                        // Handle the error based on the status code
+                        Log.e("BLE", "Advertising failed with status: $status")
+                        currentAdvertisingSet = advertisingSet
+
+                        currentAdvertisingSet?.setAdvertisingData(
+                            AdvertiseData.Builder().setIncludeDeviceName(includeDeviceName)
+                                .setIncludeTxPowerLevel(true).build()
+                        )
+                        return
+                    }
+
+                    if (advertisingSet == null) {
+                        // Handle the case where advertisingSet is null
+                        Log.e("BLE", "AdvertisingSet is null.")
+                        return
+                    }
+
+                    // Advertising started successfully
                     Log.i(
                         tag,
                         ("onAdvertisingSetStarted(): txPower:" + txPower + " , status: " + status)
-                    )
-                    currentAdvertisingSet = advertisingSet
-                    currentAdvertisingSet?.setAdvertisingData(
-                        AdvertiseData.Builder().setIncludeDeviceName(true)
-                            .setIncludeTxPowerLevel(true).build()
                     )
                 }
 
                 override fun onAdvertisingDataSet(advertisingSet: AdvertisingSet, status: Int) {
                     Log.i(tag, "onAdvertisingDataSet() :status:$status")
                     // Wait for onAdvertisingDataSet callback...
-
-                    val SERVICE_UUID = "61808880-b7b3-11E4-b3a4-0002a5d5c51b"
-
-                    currentAdvertisingSet?.setScanResponseData(
-                        AdvertiseData.Builder().addServiceUuid(ParcelUuid.fromString(SERVICE_UUID))
-                            .build()
-                    )
                 }
 
                 override fun onScanResponseDataSet(advertisingSet: AdvertisingSet, status: Int) {
@@ -332,16 +341,28 @@ open class ReactiveBleClient(private val context: Context) : BleClient {
             .setConnectable(true)
             .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM).build()
 
-        val advertiseData = (AdvertiseData.Builder()).setIncludeDeviceName(true).build()
+        val SERVICE_UUID = "61808880-b7b3-11E4-b3a4-0002a5d5c51b"
+        val maxBytes: Int = bluetoothAdapter.getLeMaximumAdvertisingDataLength()
+        Log.d(tag, "maxBytes: ${bluetoothAdapter.getLeMaximumAdvertisingDataLength()}")
+
+        if (!bluetoothAdapter.isLeExtendedAdvertisingSupported()) {
+            includeDeviceName = false
+        }
+
+        val advertiseData =
+            AdvertiseData.Builder().addServiceUuid(ParcelUuid.fromString(SERVICE_UUID))
+                .setIncludeDeviceName(includeDeviceName).build()
 
         val scanResponse: AdvertiseData = AdvertiseData.Builder()
-            .setIncludeDeviceName(true)
+            .setIncludeDeviceName(includeDeviceName)
             .build()
 
         val parameters =
             (AdvertisingSetParameters.Builder()).setLegacyMode(true) // True by default, but set here as a reminder.
-                .setConnectable(true).setScannable(true).setInterval(AdvertisingSetParameters.INTERVAL_HIGH)
+                .setConnectable(true).setScannable(true)
+                .setInterval(AdvertisingSetParameters.INTERVAL_HIGH)
                 .setTxPowerLevel(AdvertisingSetParameters.TX_POWER_MEDIUM).build()
+
 
         advertiser.startAdvertisingSet(
             parameters,
