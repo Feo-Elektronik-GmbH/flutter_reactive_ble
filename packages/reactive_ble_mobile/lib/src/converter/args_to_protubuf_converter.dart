@@ -12,20 +12,20 @@ abstract class ArgsToProtobufConverter {
   pb.DisconnectFromDeviceRequest createDisconnectDeviceArgs(String deviceId);
 
   pb.ReadCharacteristicRequest createReadCharacteristicRequest(
-    QualifiedCharacteristic characteristic,
+    CharacteristicInstance characteristic,
   );
 
   pb.WriteCharacteristicRequest createWriteCharacteristicRequest(
-    QualifiedCharacteristic characteristic,
+      CharacteristicInstance characteristic,
     List<int> value,
   );
 
   pb.NotifyCharacteristicRequest createNotifyCharacteristicRequest(
-    QualifiedCharacteristic characteristic,
+      CharacteristicInstance characteristic,
   );
 
   pb.NotifyNoMoreCharacteristicRequest createNotifyNoMoreCharacteristicRequest(
-    QualifiedCharacteristic characteristic,
+      CharacteristicInstance characteristic,
   );
 
   pb.NegotiateMtuRequest createNegotiateMtuRequest(
@@ -47,6 +47,8 @@ abstract class ArgsToProtobufConverter {
   pb.ClearGattCacheRequest createClearGattCacheRequest(String deviceId);
 
   pb.DiscoverServicesRequest createDiscoverServicesRequest(String deviceId);
+
+  pb.ReadRssiRequest createReadRssiRequest(String deviceId);
 }
 
 class ArgsToProtobufConverterImpl implements ArgsToProtobufConverter {
@@ -88,29 +90,33 @@ class ArgsToProtobufConverterImpl implements ArgsToProtobufConverter {
 
   @override
   pb.ReadCharacteristicRequest createReadCharacteristicRequest(
-    QualifiedCharacteristic characteristic,
+    CharacteristicInstance characteristic,
   ) {
     final args = pb.ReadCharacteristicRequest()
       ..characteristic = (pb.CharacteristicAddress()
         ..deviceId = characteristic.deviceId
         ..serviceUuid = (pb.Uuid()..data = characteristic.serviceId.data)
+        ..serviceInstanceId = characteristic.serviceInstanceId
         ..characteristicUuid =
-            (pb.Uuid()..data = characteristic.characteristicId.data));
+            (pb.Uuid()..data = characteristic.characteristicId.data)
+        ..characteristicInstanceId = characteristic.characteristicInstanceId);
 
     return args;
   }
 
   @override
   pb.WriteCharacteristicRequest createWriteCharacteristicRequest(
-    QualifiedCharacteristic characteristic,
+    CharacteristicInstance characteristic,
     List<int> value,
   ) {
     final args = pb.WriteCharacteristicRequest()
       ..characteristic = (pb.CharacteristicAddress()
         ..deviceId = characteristic.deviceId
         ..serviceUuid = (pb.Uuid()..data = characteristic.serviceId.data)
+        ..serviceInstanceId = characteristic.serviceInstanceId
         ..characteristicUuid =
-            (pb.Uuid()..data = characteristic.characteristicId.data))
+            (pb.Uuid()..data = characteristic.characteristicId.data)
+        ..characteristicInstanceId = characteristic.characteristicInstanceId)
       ..value = value;
 
     return args;
@@ -118,28 +124,32 @@ class ArgsToProtobufConverterImpl implements ArgsToProtobufConverter {
 
   @override
   pb.NotifyCharacteristicRequest createNotifyCharacteristicRequest(
-    QualifiedCharacteristic characteristic,
+    CharacteristicInstance characteristic,
   ) {
     final args = pb.NotifyCharacteristicRequest()
       ..characteristic = (pb.CharacteristicAddress()
         ..deviceId = characteristic.deviceId
         ..serviceUuid = (pb.Uuid()..data = characteristic.serviceId.data)
+        ..serviceInstanceId = characteristic.serviceInstanceId
         ..characteristicUuid =
-            (pb.Uuid()..data = characteristic.characteristicId.data));
+            (pb.Uuid()..data = characteristic.characteristicId.data)
+        ..characteristicInstanceId = characteristic.characteristicInstanceId);
 
     return args;
   }
 
   @override
   pb.NotifyNoMoreCharacteristicRequest createNotifyNoMoreCharacteristicRequest(
-    QualifiedCharacteristic characteristic,
+    CharacteristicInstance characteristic,
   ) {
     final args = pb.NotifyNoMoreCharacteristicRequest()
       ..characteristic = (pb.CharacteristicAddress()
         ..deviceId = characteristic.deviceId
         ..serviceUuid = (pb.Uuid()..data = characteristic.serviceId.data)
+        ..serviceInstanceId = characteristic.serviceInstanceId
         ..characteristicUuid =
-            (pb.Uuid()..data = characteristic.characteristicId.data));
+            (pb.Uuid()..data = characteristic.characteristicId.data)
+        ..characteristicInstanceId = characteristic.characteristicInstanceId);
 
     return args;
   }
@@ -180,7 +190,7 @@ class ArgsToProtobufConverterImpl implements ArgsToProtobufConverter {
 
     if (withServices != null) {
       for (final withService in withServices) {
-        args.serviceUuids.add((pb.Uuid()..data = withService.data));
+        args.serviceUuids.add(pb.Uuid()..data = withService.data);
       }
     }
 
@@ -196,6 +206,12 @@ class ArgsToProtobufConverterImpl implements ArgsToProtobufConverter {
   @override
   pb.DiscoverServicesRequest createDiscoverServicesRequest(String deviceId) {
     final args = pb.DiscoverServicesRequest()..deviceId = deviceId;
+    return args;
+  }
+
+  @override
+  pb.ReadRssiRequest createReadRssiRequest(String deviceId) {
+    final args = pb.ReadRssiRequest()..deviceId = deviceId;
     return args;
   }
 }

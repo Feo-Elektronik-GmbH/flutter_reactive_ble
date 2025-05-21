@@ -2,13 +2,14 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:flutter_reactive_ble/src/central_connector.dart';
 import 'package:flutter_reactive_ble/src/connected_device_operation.dart';
-import 'package:flutter_reactive_ble/src/debug_logger.dart';
 import 'package:flutter_reactive_ble/src/device_connector.dart';
 import 'package:flutter_reactive_ble/src/device_scanner.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:reactive_ble_platform_interface/reactive_ble_platform_interface.dart';
 
 import 'reactive_ble_test.mocks.dart';
 
@@ -58,6 +59,8 @@ void main() {
         connectedDeviceOperation: _deviceOperation,
         debugLogger: _debugLogger,
         initialization: Future.value(),
+        centralConnector:
+            CentralConnectorImpl(blePlatform: ReactiveBlePlatform.instance),
       );
     });
 
@@ -102,8 +105,15 @@ void main() {
           GenericFailure<CharacteristicValueUpdateError>>.success(
         [1],
       );
+      final characteristicInstance = CharacteristicInstance(
+        deviceId: "1",
+        characteristicId: Uuid.parse('FEFF'),
+        characteristicInstanceId: "11",
+        serviceId: Uuid.parse('F0FF'),
+        serviceInstanceId: "101",
+      );
       final charValue = CharacteristicValue(
-          characteristic: _createChar(), result: characteristic);
+          characteristic: characteristicInstance, result: characteristic);
       Stream<CharacteristicValue>? charValueStream;
 
       setUp(() {
@@ -125,24 +135,66 @@ void main() {
     group('Deinitialize', () {
       setUp(() async {
         when(_blePlatform.deinitialize()).thenAnswer((_) async => 1);
-        await _sut.deinitialize();
       });
 
-      test('It executes deinitialize succesfull', () {
-        expect(true, true);
+      test('It executes deinitialize successful', () async {
+        await _sut.deinitialize();
       });
     });
 
     group('Read characteristic', () {
-      QualifiedCharacteristic characteristic;
+      late QualifiedCharacteristic characteristic;
       List<int>? result;
 
       setUp(() async {
         characteristic = _createChar();
+        when(_deviceOperation.getDiscoverServices(characteristic.deviceId))
+            .thenAnswer((_) async => [
+                  DiscoveredService(
+                    serviceId: characteristic.serviceId,
+                    serviceInstanceId: "11",
+                    characteristicIds: [characteristic.characteristicId],
+                    includedServices: [],
+                    characteristics: [
+                      DiscoveredCharacteristic(
+                        characteristicId: Uuid.parse("1234"),
+                        characteristicInstanceId: "101",
+                        serviceId: characteristic.serviceId,
+                        isReadable: true,
+                        isWritableWithResponse: true,
+                        isWritableWithoutResponse: true,
+                        isNotifiable: true,
+                        isIndicatable: true,
+                      ),
+                      DiscoveredCharacteristic(
+                        characteristicId: characteristic.characteristicId,
+                        characteristicInstanceId: "101",
+                        serviceId: characteristic.serviceId,
+                        isReadable: true,
+                        isWritableWithResponse: true,
+                        isWritableWithoutResponse: true,
+                        isNotifiable: true,
+                        isIndicatable: true,
+                      ),
+                    ],
+                  )
+                ]);
         when(_deviceOperation.readCharacteristic(any))
             .thenAnswer((_) async => [1]);
+        when(_deviceConnector.deviceConnectionStateUpdateStream)
+            .thenAnswer((_) => const Stream.empty());
 
         result = await _sut.readCharacteristic(characteristic);
+      });
+
+      test("It reads the correct characteristic", () {
+        verify(_deviceOperation.readCharacteristic(CharacteristicInstance(
+          characteristicId: characteristic.characteristicId,
+          characteristicInstanceId: "101",
+          serviceId: characteristic.serviceId,
+          serviceInstanceId: "11",
+          deviceId: characteristic.deviceId,
+        ))).called(1);
       });
 
       test('It returns correct value', () {
@@ -152,7 +204,7 @@ void main() {
 
     group('Write characteristic with response', () {
       const value = [2];
-      QualifiedCharacteristic characteristic;
+      late QualifiedCharacteristic characteristic;
 
       setUp(() async {
         characteristic = _createChar();
@@ -161,19 +213,61 @@ void main() {
           any,
           value: anyNamed('value'),
         )).thenAnswer((_) async => [0]);
+        when(_deviceOperation.getDiscoverServices(characteristic.deviceId))
+            .thenAnswer((_) async => [
+                  DiscoveredService(
+                    serviceId: characteristic.serviceId,
+                    serviceInstanceId: "11",
+                    characteristicIds: [characteristic.characteristicId],
+                    includedServices: [],
+                    characteristics: [
+                      DiscoveredCharacteristic(
+                        characteristicId: Uuid.parse("1234"),
+                        characteristicInstanceId: "101",
+                        serviceId: characteristic.serviceId,
+                        isReadable: true,
+                        isWritableWithResponse: true,
+                        isWritableWithoutResponse: true,
+                        isNotifiable: true,
+                        isIndicatable: true,
+                      ),
+                      DiscoveredCharacteristic(
+                        characteristicId: characteristic.characteristicId,
+                        characteristicInstanceId: "101",
+                        serviceId: characteristic.serviceId,
+                        isReadable: true,
+                        isWritableWithResponse: true,
+                        isWritableWithoutResponse: true,
+                        isNotifiable: true,
+                        isIndicatable: true,
+                      ),
+                    ],
+                  )
+                ]);
+        when(_deviceConnector.deviceConnectionStateUpdateStream)
+            .thenAnswer((_) => const Stream.empty());
 
         await _sut.writeCharacteristicWithResponse(characteristic,
             value: value);
       });
 
-      test('It completes operation without errors', () {
-        expect(true, true);
+      test("It write to the correct characteristic", () {
+        verify(_deviceOperation.writeCharacteristicWithResponse(
+          CharacteristicInstance(
+            characteristicId: characteristic.characteristicId,
+            characteristicInstanceId: "101",
+            serviceId: characteristic.serviceId,
+            serviceInstanceId: "11",
+            deviceId: characteristic.deviceId,
+          ),
+          value: [2],
+        )).called(1);
       });
     });
 
     group('Write characteristic without response', () {
       const value = [2];
-      QualifiedCharacteristic characteristic;
+      late QualifiedCharacteristic characteristic;
 
       setUp(() async {
         characteristic = _createChar();
@@ -182,6 +276,39 @@ void main() {
           any,
           value: anyNamed('value'),
         )).thenAnswer((_) async => [0]);
+        when(_deviceOperation.getDiscoverServices(characteristic.deviceId))
+            .thenAnswer((_) async => [
+                  DiscoveredService(
+                    serviceId: characteristic.serviceId,
+                    serviceInstanceId: "11",
+                    characteristicIds: [characteristic.characteristicId],
+                    includedServices: [],
+                    characteristics: [
+                      DiscoveredCharacteristic(
+                        characteristicId: Uuid.parse("1234"),
+                        characteristicInstanceId: "101",
+                        serviceId: characteristic.serviceId,
+                        isReadable: true,
+                        isWritableWithResponse: true,
+                        isWritableWithoutResponse: true,
+                        isNotifiable: true,
+                        isIndicatable: true,
+                      ),
+                      DiscoveredCharacteristic(
+                        characteristicId: characteristic.characteristicId,
+                        characteristicInstanceId: "101",
+                        serviceId: characteristic.serviceId,
+                        isReadable: true,
+                        isWritableWithResponse: true,
+                        isWritableWithoutResponse: true,
+                        isNotifiable: true,
+                        isIndicatable: true,
+                      ),
+                    ],
+                  )
+                ]);
+        when(_deviceConnector.deviceConnectionStateUpdateStream)
+            .thenAnswer((_) => const Stream.empty());
 
         await _sut.writeCharacteristicWithoutResponse(
           characteristic,
@@ -189,8 +316,17 @@ void main() {
         );
       });
 
-      test('It completes operation without errors', () {
-        expect(true, true);
+      test("It write to the correct characteristic", () {
+        verify(_deviceOperation.writeCharacteristicWithoutResponse(
+          CharacteristicInstance(
+            characteristicId: characteristic.characteristicId,
+            characteristicInstanceId: "101",
+            serviceId: characteristic.serviceId,
+            serviceInstanceId: "11",
+            deviceId: characteristic.deviceId,
+          ),
+          value: [2],
+        )).called(1);
       });
     });
 
@@ -237,6 +373,7 @@ void main() {
         manufacturerData: Uint8List.fromList([0]),
         name: 'test',
         rssi: -39,
+        connectable: Connectable.unknown,
         serviceData: const {},
         serviceUuids: const [],
       );
@@ -370,6 +507,14 @@ void main() {
       });
     });
 
+    test('Read RSSI', () async {
+      const deviceId = '123';
+
+      when(_blePlatform.readRssi(deviceId)).thenAnswer((_) async => -42);
+
+      expect(await _sut.readRssi(deviceId), -42);
+    });
+
     group('ConnecteddeviceStream stream', () {
       const update = ConnectionStateUpdate(
         deviceId: '123',
@@ -412,6 +557,37 @@ void main() {
         char = _createChar();
         when(_deviceConnector.deviceConnectionStateUpdateStream)
             .thenAnswer((_) => Stream.fromIterable([update]));
+        when(_deviceOperation.getDiscoverServices(char.deviceId))
+            .thenAnswer((_) async => [
+                  DiscoveredService(
+                    serviceId: char.serviceId,
+                    serviceInstanceId: "11",
+                    characteristicIds: [char.characteristicId],
+                    includedServices: [],
+                    characteristics: [
+                      DiscoveredCharacteristic(
+                        characteristicId: Uuid.parse("1234"),
+                        characteristicInstanceId: "101",
+                        serviceId: char.serviceId,
+                        isReadable: true,
+                        isWritableWithResponse: true,
+                        isWritableWithoutResponse: true,
+                        isNotifiable: true,
+                        isIndicatable: true,
+                      ),
+                      DiscoveredCharacteristic(
+                        characteristicId: char.characteristicId,
+                        characteristicInstanceId: "101",
+                        serviceId: char.serviceId,
+                        isReadable: true,
+                        isWritableWithResponse: true,
+                        isWritableWithoutResponse: true,
+                        isNotifiable: true,
+                        isIndicatable: true,
+                      ),
+                    ],
+                  )
+                ]);
 
         valueStream = Stream.fromIterable([
           [1],
@@ -449,7 +625,174 @@ void main() {
         });
 
         test('It returns result', () async {
+          // ignore: deprecated_member_use_from_same_package
           expect(await _sut.discoverServices(deviceId), <DiscoveredService>[]);
+        });
+      });
+    });
+
+    group('Discover all services', () {
+      const deviceId = '123';
+
+      group('When operation is successful', () {
+        const result = <DiscoveredService>[];
+
+        setUp(() {
+          when(_deviceOperation.discoverServices(any))
+              .thenAnswer((_) async => result);
+        });
+
+        test('It succeeds', () async {
+          await _sut.discoverAllServices(deviceId);
+          verify(_deviceOperation.discoverServices(deviceId)).called(1);
+        });
+      });
+    });
+
+    group("getDiscoveredServices", () {
+      const deviceId = "123";
+
+      group("multiple characteristics with same id in single service", () {
+        setUp(() {
+          when(_deviceOperation.getDiscoverServices(deviceId))
+              .thenAnswer((_) async => [
+                    DiscoveredService(
+                      serviceId: Uuid.parse("ff01"),
+                      serviceInstanceId: "11",
+                      characteristicIds: [Uuid.parse("aa01")],
+                      includedServices: [],
+                      characteristics: [
+                        DiscoveredCharacteristic(
+                          characteristicId: Uuid.parse("aa01"),
+                          characteristicInstanceId: "101",
+                          serviceId: Uuid.parse("ff01"),
+                          isReadable: true,
+                          isWritableWithResponse: true,
+                          isWritableWithoutResponse: true,
+                          isNotifiable: true,
+                          isIndicatable: true,
+                        ),
+                        DiscoveredCharacteristic(
+                          characteristicId: Uuid.parse("aa01"),
+                          characteristicInstanceId: "102",
+                          serviceId: Uuid.parse("ff01"),
+                          isReadable: true,
+                          isWritableWithResponse: true,
+                          isWritableWithoutResponse: true,
+                          isNotifiable: true,
+                          isIndicatable: true,
+                        ),
+                      ],
+                    )
+                  ]);
+          when(_deviceOperation.readCharacteristic(any))
+              .thenAnswer((_) async => [42]);
+          when(_deviceConnector.deviceConnectionStateUpdateStream)
+              .thenAnswer((_) => const Stream.empty());
+        });
+
+        test("reading first instance of characteristic", () async {
+          final services = await _sut.getDiscoveredServices("123");
+
+          expect(await services.single.characteristics.first.read(), [42]);
+
+          verify(_deviceOperation.readCharacteristic(CharacteristicInstance(
+            characteristicId: Uuid.parse("aa01"),
+            characteristicInstanceId: "101",
+            serviceId: Uuid.parse("ff01"),
+            serviceInstanceId: "11",
+            deviceId: "123",
+          )));
+        });
+
+        test("reading second instance of characteristic", () async {
+          final services = await _sut.getDiscoveredServices("123");
+
+          expect(await services.single.characteristics[1].read(), [42]);
+
+          verify(_deviceOperation.readCharacteristic(CharacteristicInstance(
+            characteristicId: Uuid.parse("aa01"),
+            characteristicInstanceId: "102",
+            serviceId: Uuid.parse("ff01"),
+            serviceInstanceId: "11",
+            deviceId: "123",
+          )));
+        });
+      });
+
+      group("multiple characteristics with same id in different service", () {
+        setUp(() {
+          when(_deviceOperation.getDiscoverServices(deviceId))
+              .thenAnswer((_) async => [
+                    DiscoveredService(
+                      serviceId: Uuid.parse("ff01"),
+                      serviceInstanceId: "11",
+                      characteristicIds: [Uuid.parse("aa01")],
+                      includedServices: [],
+                      characteristics: [
+                        DiscoveredCharacteristic(
+                          characteristicId: Uuid.parse("aa01"),
+                          characteristicInstanceId: "101",
+                          serviceId: Uuid.parse("ff01"),
+                          isReadable: true,
+                          isWritableWithResponse: true,
+                          isWritableWithoutResponse: true,
+                          isNotifiable: true,
+                          isIndicatable: true,
+                        ),
+                      ],
+                    ),
+                    DiscoveredService(
+                      serviceId: Uuid.parse("ff01"),
+                      serviceInstanceId: "12",
+                      characteristicIds: [Uuid.parse("aa01")],
+                      includedServices: [],
+                      characteristics: [
+                        DiscoveredCharacteristic(
+                          characteristicId: Uuid.parse("aa01"),
+                          characteristicInstanceId: "101",
+                          serviceId: Uuid.parse("ff01"),
+                          isReadable: true,
+                          isWritableWithResponse: true,
+                          isWritableWithoutResponse: true,
+                          isNotifiable: true,
+                          isIndicatable: true,
+                        ),
+                      ],
+                    ),
+                  ]);
+          when(_deviceConnector.deviceConnectionStateUpdateStream)
+              .thenAnswer((_) => const Stream.empty());
+          when(_deviceOperation.readCharacteristic(any))
+              .thenAnswer((_) async => [42]);
+        });
+
+        test("reading first instance of characteristic", () async {
+          final services = await _sut.getDiscoveredServices("123");
+
+          expect(await services.first.characteristics.single.read(), [42]);
+
+          verify(_deviceOperation.readCharacteristic(CharacteristicInstance(
+            characteristicId: Uuid.parse("aa01"),
+            characteristicInstanceId: "101",
+            serviceId: Uuid.parse("ff01"),
+            serviceInstanceId: "11",
+            deviceId: "123",
+          )));
+        });
+
+        test("reading second instance of characteristic", () async {
+          final services = await _sut.getDiscoveredServices("123");
+
+          expect(await services[1].characteristics.single.read(), [42]);
+
+          verify(_deviceOperation.readCharacteristic(CharacteristicInstance(
+            characteristicId: Uuid.parse("aa01"),
+            characteristicInstanceId: "101",
+            serviceId: Uuid.parse("ff01"),
+            serviceInstanceId: "12",
+            deviceId: "123",
+          )));
         });
       });
     });

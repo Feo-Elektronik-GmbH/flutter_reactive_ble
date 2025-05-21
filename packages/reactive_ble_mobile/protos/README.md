@@ -18,13 +18,13 @@ brew install swift-protobuf
 brew install dart
 ```
 
-4. Run `pub global activate protoc_plugin`
+4. Run `dart pub global activate protoc_plugin`
 5. OPTIONAL Add plugin path to `PATH` environment variable
 6. Run the following command from the "protos" directory
 
 ```sh
 protoc --dart_out=../lib/src/generated ./bledata.proto
-protoc --swift_out=../ios/Classes/BleData ./bledata.proto
+protoc --swift_out=../darwin/Classes/BleData ./bledata.proto
 ```
 
-NOTE: If directory `../lib/generated` or `./ios/Classes/BleData` does not exist please create it.
+NOTE: If directory `../lib/generated` or `./darwin/Classes/BleData` does not exist please create it.
