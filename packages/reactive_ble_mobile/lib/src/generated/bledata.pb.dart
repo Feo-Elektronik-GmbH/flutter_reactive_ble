@@ -94,6 +94,7 @@ class DeviceScanInfo extends $pb.GeneratedMessage {
     $core.int? rssi,
     $core.List<$core.int>? manufacturerData,
     $core.Iterable<Uuid>? serviceUuids,
+    IsConnectable? isConnectable,
   }) {
     final $result = create();
     if (id != null) {
@@ -117,6 +118,9 @@ class DeviceScanInfo extends $pb.GeneratedMessage {
     if (serviceUuids != null) {
       $result.serviceUuids.addAll(serviceUuids);
     }
+    if (isConnectable != null) {
+      $result.isConnectable = isConnectable;
+    }
     return $result;
   }
   DeviceScanInfo._() : super();
@@ -131,6 +135,7 @@ class DeviceScanInfo extends $pb.GeneratedMessage {
     ..a<$core.int>(5, _omitFieldNames ? '' : 'rssi', $pb.PbFieldType.O3)
     ..a<$core.List<$core.int>>(6, _omitFieldNames ? '' : 'manufacturerData', $pb.PbFieldType.OY, protoName: 'manufacturerData')
     ..pc<Uuid>(7, _omitFieldNames ? '' : 'serviceUuids', $pb.PbFieldType.PM, protoName: 'serviceUuids', subBuilder: Uuid.create)
+    ..aOM<IsConnectable>(8, _omitFieldNames ? '' : 'isConnectable', protoName: 'isConnectable', subBuilder: IsConnectable.create)
     ..hasRequiredFields = false
   ;
 
@@ -207,6 +212,17 @@ class DeviceScanInfo extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(7)
   $core.List<Uuid> get serviceUuids => $_getList(6);
+
+  @$pb.TagNumber(8)
+  IsConnectable get isConnectable => $_getN(7);
+  @$pb.TagNumber(8)
+  set isConnectable(IsConnectable v) { setField(8, v); }
+  @$pb.TagNumber(8)
+  $core.bool hasIsConnectable() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearIsConnectable() => clearField(8);
+  @$pb.TagNumber(8)
+  IsConnectable ensureIsConnectable() => $_ensure(7);
 }
 
 class ConnectToDeviceRequest extends $pb.GeneratedMessage {
@@ -1222,6 +1238,8 @@ class CharacteristicAddress extends $pb.GeneratedMessage {
     $core.String? deviceId,
     Uuid? serviceUuid,
     Uuid? characteristicUuid,
+    $core.String? serviceInstanceId,
+    $core.String? characteristicInstanceId,
   }) {
     final $result = create();
     if (deviceId != null) {
@@ -1233,6 +1251,12 @@ class CharacteristicAddress extends $pb.GeneratedMessage {
     if (characteristicUuid != null) {
       $result.characteristicUuid = characteristicUuid;
     }
+    if (serviceInstanceId != null) {
+      $result.serviceInstanceId = serviceInstanceId;
+    }
+    if (characteristicInstanceId != null) {
+      $result.characteristicInstanceId = characteristicInstanceId;
+    }
     return $result;
   }
   CharacteristicAddress._() : super();
@@ -1243,6 +1267,8 @@ class CharacteristicAddress extends $pb.GeneratedMessage {
     ..aOS(1, _omitFieldNames ? '' : 'deviceId', protoName: 'deviceId')
     ..aOM<Uuid>(2, _omitFieldNames ? '' : 'serviceUuid', protoName: 'serviceUuid', subBuilder: Uuid.create)
     ..aOM<Uuid>(3, _omitFieldNames ? '' : 'characteristicUuid', protoName: 'characteristicUuid', subBuilder: Uuid.create)
+    ..aOS(4, _omitFieldNames ? '' : 'serviceInstanceId', protoName: 'serviceInstanceId')
+    ..aOS(5, _omitFieldNames ? '' : 'characteristicInstanceId', protoName: 'characteristicInstanceId')
     ..hasRequiredFields = false
   ;
 
@@ -1297,6 +1323,24 @@ class CharacteristicAddress extends $pb.GeneratedMessage {
   void clearCharacteristicUuid() => clearField(3);
   @$pb.TagNumber(3)
   Uuid ensureCharacteristicUuid() => $_ensure(2);
+
+  @$pb.TagNumber(4)
+  $core.String get serviceInstanceId => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set serviceInstanceId($core.String v) { $_setString(3, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasServiceInstanceId() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearServiceInstanceId() => clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.String get characteristicInstanceId => $_getSZ(4);
+  @$pb.TagNumber(5)
+  set characteristicInstanceId($core.String v) { $_setString(4, v); }
+  @$pb.TagNumber(5)
+  $core.bool hasCharacteristicInstanceId() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearCharacteristicInstanceId() => clearField(5);
 }
 
 class ServiceDataEntry extends $pb.GeneratedMessage {
@@ -1583,6 +1627,7 @@ class DiscoveredService extends $pb.GeneratedMessage {
     $core.Iterable<Uuid>? characteristicUuids,
     $core.Iterable<DiscoveredService>? includedServices,
     $core.Iterable<DiscoveredCharacteristic>? characteristics,
+    $core.String? serviceInstanceId,
   }) {
     final $result = create();
     if (serviceUuid != null) {
@@ -1597,6 +1642,9 @@ class DiscoveredService extends $pb.GeneratedMessage {
     if (characteristics != null) {
       $result.characteristics.addAll(characteristics);
     }
+    if (serviceInstanceId != null) {
+      $result.serviceInstanceId = serviceInstanceId;
+    }
     return $result;
   }
   DiscoveredService._() : super();
@@ -1608,6 +1656,7 @@ class DiscoveredService extends $pb.GeneratedMessage {
     ..pc<Uuid>(2, _omitFieldNames ? '' : 'characteristicUuids', $pb.PbFieldType.PM, protoName: 'characteristicUuids', subBuilder: Uuid.create)
     ..pc<DiscoveredService>(3, _omitFieldNames ? '' : 'includedServices', $pb.PbFieldType.PM, protoName: 'includedServices', subBuilder: DiscoveredService.create)
     ..pc<DiscoveredCharacteristic>(4, _omitFieldNames ? '' : 'characteristics', $pb.PbFieldType.PM, subBuilder: DiscoveredCharacteristic.create)
+    ..aOS(5, _omitFieldNames ? '' : 'serviceInstanceId', protoName: 'serviceInstanceId')
     ..hasRequiredFields = false
   ;
 
@@ -1651,6 +1700,15 @@ class DiscoveredService extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(4)
   $core.List<DiscoveredCharacteristic> get characteristics => $_getList(3);
+
+  @$pb.TagNumber(5)
+  $core.String get serviceInstanceId => $_getSZ(4);
+  @$pb.TagNumber(5)
+  set serviceInstanceId($core.String v) { $_setString(4, v); }
+  @$pb.TagNumber(5)
+  $core.bool hasServiceInstanceId() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearServiceInstanceId() => clearField(5);
 }
 
 class DiscoveredCharacteristic extends $pb.GeneratedMessage {
@@ -1662,6 +1720,7 @@ class DiscoveredCharacteristic extends $pb.GeneratedMessage {
     $core.bool? isWritableWithoutResponse,
     $core.bool? isNotifiable,
     $core.bool? isIndicatable,
+    $core.String? characteristicInstanceId,
   }) {
     final $result = create();
     if (characteristicId != null) {
@@ -1685,6 +1744,9 @@ class DiscoveredCharacteristic extends $pb.GeneratedMessage {
     if (isIndicatable != null) {
       $result.isIndicatable = isIndicatable;
     }
+    if (characteristicInstanceId != null) {
+      $result.characteristicInstanceId = characteristicInstanceId;
+    }
     return $result;
   }
   DiscoveredCharacteristic._() : super();
@@ -1699,6 +1761,7 @@ class DiscoveredCharacteristic extends $pb.GeneratedMessage {
     ..aOB(5, _omitFieldNames ? '' : 'isWritableWithoutResponse', protoName: 'isWritableWithoutResponse')
     ..aOB(6, _omitFieldNames ? '' : 'isNotifiable', protoName: 'isNotifiable')
     ..aOB(7, _omitFieldNames ? '' : 'isIndicatable', protoName: 'isIndicatable')
+    ..aOS(8, _omitFieldNames ? '' : 'characteristicInstanceId', protoName: 'characteristicInstanceId')
     ..hasRequiredFields = false
   ;
 
@@ -1789,6 +1852,115 @@ class DiscoveredCharacteristic extends $pb.GeneratedMessage {
   $core.bool hasIsIndicatable() => $_has(6);
   @$pb.TagNumber(7)
   void clearIsIndicatable() => clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.String get characteristicInstanceId => $_getSZ(7);
+  @$pb.TagNumber(8)
+  set characteristicInstanceId($core.String v) { $_setString(7, v); }
+  @$pb.TagNumber(8)
+  $core.bool hasCharacteristicInstanceId() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearCharacteristicInstanceId() => clearField(8);
+}
+
+class ReadRssiRequest extends $pb.GeneratedMessage {
+  factory ReadRssiRequest({
+    $core.String? deviceId,
+  }) {
+    final $result = create();
+    if (deviceId != null) {
+      $result.deviceId = deviceId;
+    }
+    return $result;
+  }
+  ReadRssiRequest._() : super();
+  factory ReadRssiRequest.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory ReadRssiRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ReadRssiRequest', createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'deviceId', protoName: 'deviceId')
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  ReadRssiRequest clone() => ReadRssiRequest()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  ReadRssiRequest copyWith(void Function(ReadRssiRequest) updates) => super.copyWith((message) => updates(message as ReadRssiRequest)) as ReadRssiRequest;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ReadRssiRequest create() => ReadRssiRequest._();
+  ReadRssiRequest createEmptyInstance() => create();
+  static $pb.PbList<ReadRssiRequest> createRepeated() => $pb.PbList<ReadRssiRequest>();
+  @$core.pragma('dart2js:noInline')
+  static ReadRssiRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ReadRssiRequest>(create);
+  static ReadRssiRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get deviceId => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set deviceId($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasDeviceId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearDeviceId() => clearField(1);
+}
+
+class ReadRssiResult extends $pb.GeneratedMessage {
+  factory ReadRssiResult({
+    $core.int? rssi,
+  }) {
+    final $result = create();
+    if (rssi != null) {
+      $result.rssi = rssi;
+    }
+    return $result;
+  }
+  ReadRssiResult._() : super();
+  factory ReadRssiResult.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory ReadRssiResult.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ReadRssiResult', createEmptyInstance: create)
+    ..a<$core.int>(1, _omitFieldNames ? '' : 'rssi', $pb.PbFieldType.O3)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  ReadRssiResult clone() => ReadRssiResult()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  ReadRssiResult copyWith(void Function(ReadRssiResult) updates) => super.copyWith((message) => updates(message as ReadRssiResult)) as ReadRssiResult;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ReadRssiResult create() => ReadRssiResult._();
+  ReadRssiResult createEmptyInstance() => create();
+  static $pb.PbList<ReadRssiResult> createRepeated() => $pb.PbList<ReadRssiResult>();
+  @$core.pragma('dart2js:noInline')
+  static ReadRssiResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ReadRssiResult>(create);
+  static ReadRssiResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get rssi => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set rssi($core.int v) { $_setSignedInt32(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasRssi() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearRssi() => clearField(1);
 }
 
 class Uuid extends $pb.GeneratedMessage {
@@ -1904,6 +2076,60 @@ class GenericFailure extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearMessage() => clearField(2);
 }
+
+class IsConnectable extends $pb.GeneratedMessage {
+  factory IsConnectable({
+    $core.int? code,
+  }) {
+    final $result = create();
+    if (code != null) {
+      $result.code = code;
+    }
+    return $result;
+  }
+  IsConnectable._() : super();
+  factory IsConnectable.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory IsConnectable.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'IsConnectable', createEmptyInstance: create)
+    ..a<$core.int>(1, _omitFieldNames ? '' : 'code', $pb.PbFieldType.O3)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  IsConnectable clone() => IsConnectable()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  IsConnectable copyWith(void Function(IsConnectable) updates) => super.copyWith((message) => updates(message as IsConnectable)) as IsConnectable;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static IsConnectable create() => IsConnectable._();
+  IsConnectable createEmptyInstance() => create();
+  static $pb.PbList<IsConnectable> createRepeated() => $pb.PbList<IsConnectable>();
+  @$core.pragma('dart2js:noInline')
+  static IsConnectable getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<IsConnectable>(create);
+  static IsConnectable? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get code => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set code($core.int v) { $_setSignedInt32(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasCode() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearCode() => clearField(1);
+}
+
+
+const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
+const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
 
 class GetConnectionRequest extends $pb.GeneratedMessage {
   factory GetConnectionRequest({

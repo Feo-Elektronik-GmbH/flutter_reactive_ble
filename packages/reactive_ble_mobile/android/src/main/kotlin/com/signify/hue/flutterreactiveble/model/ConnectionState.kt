@@ -26,4 +26,4 @@ fun RxBleConnection.RxBleConnectionState.toConnectionState(): ConnectionState =
         "BONDED" -> ConnectionState.BONDED
         "UPDATE" -> ConnectionState.UPDATE
         else -> ConnectionState.UNKNOWN
-}
+    }

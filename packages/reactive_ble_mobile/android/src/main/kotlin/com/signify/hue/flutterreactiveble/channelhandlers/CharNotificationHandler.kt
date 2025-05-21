@@ -1,11 +1,12 @@
 package com.signify.hue.flutterreactiveble.channelhandlers
 
-import com.signify.hue.flutterreactiveble.ProtobufModel as pb
+import com.polidea.rxandroidble2.exceptions.BleDisconnectedException
 import com.signify.hue.flutterreactiveble.converters.ProtobufMessageConverter
 import com.signify.hue.flutterreactiveble.converters.UuidConverter
 import io.flutter.plugin.common.EventChannel
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
+import com.signify.hue.flutterreactiveble.ProtobufModel as pb
 
 class CharNotificationHandler(private val bleClient: com.signify.hue.flutterreactiveble.ble.BleClient) :
     EventChannel.StreamHandler {
@@ -29,15 +30,28 @@ class CharNotificationHandler(private val bleClient: com.signify.hue.flutterreac
     }
 
     fun subscribeToNotifications(request: pb.NotifyCharacteristicRequest) {
-        val serviceUuid = uuidConverter.uuidFromByteArray(request.characteristic.serviceUuid.data.toByteArray())
-        val charUuid = uuidConverter.uuidFromByteArray(request.characteristic.characteristicUuid.data.toByteArray())
-        val subscription = bleClient.setupNotification(request.characteristic.deviceId, serviceUuid, charUuid)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ value ->
-                handleNotificationValue(request.characteristic, value)
-            }, {
-                handleNotificationError(request.characteristic, it)
-            })
+        val charUuid =
+            uuidConverter
+                .uuidFromByteArray(request.characteristic.characteristicUuid.data.toByteArray())
+        val subscription =
+            bleClient.setupNotification(
+                request.characteristic.deviceId,
+                charUuid,
+                request.characteristic.characteristicInstanceId.toInt(),
+            )
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ value ->
+                    handleNotificationValue(request.characteristic, value)
+                }, {
+                    when (it) {
+                        is BleDisconnectedException -> {
+                            subscriptionMap.remove(request.characteristic)?.dispose()
+                        }
+                        else -> {
+                            handleNotificationError(request.characteristic, it)
+                        }
+                    }
+                })
         subscriptionMap[request.characteristic] = subscription
     }
 
@@ -49,7 +63,10 @@ class CharNotificationHandler(private val bleClient: com.signify.hue.flutterreac
         handleNotificationValue(charInfo.characteristic, charInfo.value.toByteArray())
     }
 
-    fun addSingleErrorToStream(subscriptionRequest: pb.CharacteristicAddress, error: String) {
+    fun addSingleErrorToStream(
+        subscriptionRequest: pb.CharacteristicAddress,
+        error: String,
+    ) {
         val convertedMsg = protobufConverter.convertCharacteristicError(subscriptionRequest, error)
         charNotificationSink?.success(convertedMsg.toByteArray())
     }
@@ -61,7 +78,7 @@ class CharNotificationHandler(private val bleClient: com.signify.hue.flutterreac
 
     private fun handleNotificationValue(
         subscriptionRequest: pb.CharacteristicAddress,
-        value: ByteArray
+        value: ByteArray,
     ) {
         val convertedMsg = protobufConverter.convertCharacteristicInfo(subscriptionRequest, value)
         charNotificationSink?.success(convertedMsg.toByteArray())
@@ -69,7 +86,7 @@ class CharNotificationHandler(private val bleClient: com.signify.hue.flutterreac
 
     private fun handleNotificationError(
         subscriptionRequest: pb.CharacteristicAddress,
-        error: Throwable
+        error: Throwable,
     ) {
         val convertedMsg =
             protobufConverter.convertCharacteristicError(subscriptionRequest, error.message ?: "")
