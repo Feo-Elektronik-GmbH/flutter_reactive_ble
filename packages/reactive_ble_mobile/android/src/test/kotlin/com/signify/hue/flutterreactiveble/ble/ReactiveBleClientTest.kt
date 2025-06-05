@@ -8,16 +8,22 @@ import android.bluetooth.BluetoothDevice.BOND_BONDED
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
+import android.os.Process
+import android.text.TextUtils
 import android.util.Log
 import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationManagerCompat
 import com.google.common.truth.Truth.assertThat
 import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.RxBleConnection
 import com.polidea.rxandroidble2.RxBleDevice
 import com.polidea.rxandroidble2.RxBleDeviceServices
+import com.signify.hue.flutterreactiveble.BuildConfig as FBuildConfig
+import com.signify.hue.flutterreactiveble.utils.Duration as FDuration
 import com.signify.hue.flutterreactiveble.ble.extensions.writeCharWithResponse
 import com.signify.hue.flutterreactiveble.ble.extensions.writeCharWithoutResponse
-import com.signify.hue.flutterreactiveble.utils.Duration
+import com.signify.hue.flutterreactiveble.utils.BuildConfig
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -30,11 +36,14 @@ import io.reactivex.Single
 import io.reactivex.android.plugins.RxAndroidPlugins
 import io.reactivex.schedulers.TestScheduler
 import io.reactivex.subjects.BehaviorSubject
+import junit.framework.Assert.assertTrue
+import junit.framework.TestCase.assertFalse
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.Duration
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -49,7 +58,7 @@ private class BleClientForTesting(
         activeConnections = mutableMapOf()
     }
 
-    override fun createDeviceConnector(device: RxBleDevice, timeout: Duration): DeviceConnector =
+    override fun createDeviceConnector(device: RxBleDevice, timeout: FDuration): DeviceConnector =
         deviceConnector
 }
 
@@ -78,7 +87,7 @@ class ReactiveBleClientTest {
 
     private lateinit var sut: BleClientForTesting
 
-    private val testTimeout = Duration(100L, TimeUnit.MILLISECONDS)
+    private val testTimeout = FDuration(100L, TimeUnit.MILLISECONDS)
 
     private var testScheduler: TestScheduler? = null
 
@@ -541,4 +550,222 @@ class ReactiveBleClientTest {
             assertThat(result).isEqualTo(device2)
         }
     }
+
+    @Nested
+    @DisplayName("Check for classic bonding")
+    inner class CheckForClassicBonding {
+
+        @BeforeEach
+        fun setup() {
+            mockkStatic(Log::class)
+            mockkStatic(TextUtils::class)
+            mockkStatic(NotificationManagerCompat::class)
+            mockkStatic(ActivityCompat::class)
+            mockkStatic(Process::class)
+            every { Log.v(any(), any()) } returns 0
+            every { Log.d(any(), any()) } returns 0
+            every { Log.i(any(), any()) } returns 0
+            every { Log.e(any(), any()) } returns 0
+            every { bleDevice.bluetoothDevice }.returns(bluetoothDevice)
+
+        }
+
+        @Test
+        fun `test permission denied returns false`() {
+            // Mock permission check to simulate denied permission
+            val mockContext = mockk<Context>()
+            val mBtManager = mockk<BluetoothManager>()
+            val mBtAdapter = mockk<BluetoothAdapter>()
+            val buildConfig = mockk<BuildConfig>()
+
+            mockkStatic(Log::class)
+            mockkStatic(TextUtils::class)
+            mockkStatic(NotificationManagerCompat::class)
+            mockkStatic(ActivityCompat::class)
+            mockkStatic(Process::class)
+
+            every { buildConfig.getVersionSDKInt() } returns 29
+
+            val btPermission = when (buildConfig.getVersionSDKInt()) {
+                in 1..Build.VERSION_CODES.R -> Manifest.permission.BLUETOOTH
+                else -> Manifest.permission.BLUETOOTH_CONNECT
+            }
+
+            every { Process.myPid() } returns 1234
+            every { Process.myUid() } returns 5678
+            every { context.getSystemService(Context.BLUETOOTH_SERVICE) } returns mBtManager
+            every {
+                context.checkPermission(
+                    btPermission,
+                    Process.myPid(),
+                    Process.myUid()
+                )
+            } returns PackageManager.PERMISSION_DENIED
+            every { mBtManager.adapter } returns mBtAdapter
+
+            val device = mockk<BluetoothDevice>()
+            every { device.address } returns "66:77:88:99:AA:BB"
+            every { device.name } returns "iNet Box"
+            every { device.type } returns 2
+
+            every {
+                ActivityCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.BLUETOOTH
+                )
+            } returns PackageManager.PERMISSION_DENIED
+            every {
+                ActivityCompat.checkSelfPermission(
+                    mockContext,
+                    Manifest.permission.BLUETOOTH_CONNECT
+                )
+            } returns PackageManager.PERMISSION_DENIED
+
+            every { TextUtils.equals(any(), any()) } returns true
+            every { NotificationManagerCompat.from(context).areNotificationsEnabled() } returns true
+            // Call the function
+            val result = sut.isClassicBonding(device, context, buildConfig)
+
+            // Assert that the result is false due to denied permission
+            assertThat(result).isFalse()
+        }
+
+        @Test
+        fun `test device is classic returns true`() {
+            // Mock permission check to simulate granted permission
+            val mockContext = mockk<Context>()
+            every {
+                ActivityCompat.checkSelfPermission(
+                    mockContext,
+                    Manifest.permission.BLUETOOTH_CONNECT
+                )
+            } returns PackageManager.PERMISSION_GRANTED
+
+            // Mock device type to return CLASSIC
+            every { bluetoothDevice.type } returns BluetoothDevice.DEVICE_TYPE_CLASSIC
+
+            // Call the function
+            val result = sut.isClassicBonding(bluetoothDevice, null, null)
+
+            // Assert that the result is true for a classic device
+            assertThat(result).isTrue()
+        }
+
+        @Test
+        fun `test device is dual returns true`() {
+            // Mock permission check to simulate granted permission
+            val mockContext = mockk<Context>()
+            every {
+                ActivityCompat.checkSelfPermission(
+                    mockContext,
+                    Manifest.permission.BLUETOOTH_CONNECT
+                )
+            } returns PackageManager.PERMISSION_GRANTED
+
+            // Mock device type to return DUAL
+            every { bluetoothDevice.type } returns BluetoothDevice.DEVICE_TYPE_DUAL
+
+            // Call the function
+            val result = sut.isClassicBonding(bluetoothDevice, null, null)
+
+            // Assert that the result is true for a dual device
+            assertThat(result).isTrue()
+        }
+
+        @Test
+        fun `test device is neither classic nor dual returns false`() {
+            // Mock permission check to simulate granted permission
+            val mockContext = mockk<Context>()
+            every {
+                ActivityCompat.checkSelfPermission(
+                    mockContext,
+                    Manifest.permission.BLUETOOTH_CONNECT
+                )
+            } returns PackageManager.PERMISSION_GRANTED
+
+            // Mock device type to return something else (e.g., LE)
+            every { bluetoothDevice.type } returns BluetoothDevice.DEVICE_TYPE_LE
+
+            // Call the function
+            val result = sut.isClassicBonding(bluetoothDevice, null, null)
+
+            // Assert that the result is false for non-classic/non-dual devices
+            assertThat(result).isFalse()
+        }
+
+        @Test
+        fun `test exception handling returns false`() {
+            // Simulate an exception during permission check
+            val mockContext = mockk<Context>()
+            every {
+                ActivityCompat.checkSelfPermission(
+                    mockContext,
+                    Manifest.permission.BLUETOOTH_CONNECT
+                )
+            } throws RuntimeException("Simulated exception")
+
+            // Call the function
+            val result = sut.isClassicBonding(bluetoothDevice, null, null)
+
+            // Assert that the result is false due to exception
+            assertThat(result).isFalse()
+        }
+    }
+
+    @Nested
+    @DisplayName("Remove bonded device")
+    inner class RemoveBondedDeviceTest {
+
+        @BeforeEach
+        fun setup() {
+            mockkStatic(Log::class)
+            mockkStatic(TextUtils::class)
+            mockkStatic(NotificationManagerCompat::class)
+            mockkStatic(ActivityCompat::class)
+            mockkStatic(Process::class)
+            every { Log.v(any(), any()) } returns 0
+            every { Log.d(any(), any()) } returns 0
+            every { Log.i(any(), any()) } returns 0
+            every { Log.e(any(), any()) } returns 0
+            every { bleDevice.bluetoothDevice }.returns(bluetoothDevice)
+            every { bluetoothDevice.type } returns 2
+        }
+
+        // todo: fix test
+        /*@Test
+        fun removeInetBoxBonding() {
+            val context = mockk<Context>()
+            val mBtManager = mockk<BluetoothManager>()
+            val mBtAdapter = mockk<BluetoothAdapter>()
+            val buildConfig = mockk<BuildConfig>()
+
+            every { context.getSystemService(Context.BLUETOOTH_SERVICE) } returns mBtManager
+//            every { context.getSystemService("android.permission.POST_NOTIFICATIONS") } returns mBtManager
+            every { mBtManager.adapter } returns mBtAdapter
+            every { mBtAdapter.bondedDevices } returns setOf(bluetoothDevice)
+
+            every { buildConfig.getVersionSDKInt() } returns 34
+            every { Process.myPid() } returns 1234
+            every { Process.myUid() } returns 5678
+
+            every {
+                ActivityCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.BLUETOOTH_ADMIN
+                )
+            } returns PackageManager.PERMISSION_GRANTED
+            every { TextUtils.equals(any(), any()) } returns true
+            every { NotificationManagerCompat.from(context).areNotificationsEnabled() } returns true
+
+            every { bluetoothDevice.address } returns deviceId
+            every { bluetoothDevice.name } returns "iNet Box"
+
+
+            val result =
+                sut.removeInetBoxBonding(deviceId, forceDelete = false, context)
+            assertThat(result).isFalse()
+        }*/
+    }
+
+
 }

@@ -40,7 +40,7 @@ apply plugin: "io.gitlab.arturbosch.detekt"
 apply plugin: "de.mannodermaus.android-junit5"
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 34
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
         test.java.srcDirs += 'src/test/kotlin'
@@ -53,7 +53,7 @@ android {
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 31
+        targetSdkVersion 34
         consumerProguardFiles 'proguard-rules.txt'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -104,6 +104,7 @@ dependencies {
     implementation 'com.google.protobuf:protobuf-javalite:3.18.1'
     implementation 'io.reactivex.rxjava2:rxkotlin:2.4.0'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    implementation 'androidx.core:core:1.13.1'
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.7.0"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.7.0"
