@@ -235,7 +235,20 @@ class ProtobufMessageConverter {
         return root.addAllIncludedServices(children).build()
     }
 
-    private fun createCharacteristicAddress(request: pb.CharacteristicAddress): pb.CharacteristicAddress.Builder? {
+    fun convertToCharacteristicAddress(
+        deviceId: String,
+        serviceUuid: UUID,
+        characteristicUuid: UUID
+    ): pb.CharacteristicAddress {
+        return pb.CharacteristicAddress.newBuilder()
+            .setDeviceId(deviceId)
+            .setServiceUuid(createUuidFromParcelUuid(serviceUuid))
+            .setCharacteristicUuid(createUuidFromParcelUuid(characteristicUuid))
+            .build()
+    }
+
+    private fun createCharacteristicAddress(request: pb.CharacteristicAddress):
+            pb.CharacteristicAddress.Builder? {
         return pb.CharacteristicAddress.newBuilder()
             .setDeviceId(request.deviceId)
             .setServiceUuid(request.serviceUuid)

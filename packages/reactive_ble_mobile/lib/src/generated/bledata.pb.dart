@@ -2294,7 +2294,3 @@ class BtMacAddressInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearForceDelete() => clearField(2);
 }
-
-
-const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');

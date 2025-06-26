@@ -128,10 +128,10 @@ open class ReactiveBleClient(private val context: Context) : BleClient {
             }
     }
 
-    override val connectionUpdateSubject: PublishSubject<ConnectionUpdate>
+    override val connectionUpdateSubject: BehaviorSubject<ConnectionUpdate>
         get() = connectionUpdateBehaviorSubject
 
-    override val centralConnectionUpdateSubject: PublishSubject<ConnectionUpdate>
+    override val centralConnectionUpdateSubject: BehaviorSubject<ConnectionUpdate>
         get() = centralConnectionUpdateBehaviorSubject
 
     override val charRequestSubject: BehaviorSubject<CharOperationResult>
@@ -1533,31 +1533,6 @@ open class ReactiveBleClient(private val context: Context) : BleClient {
                 Observable.just(Observable.empty())
             }
         }
-
-    override fun requestConnectionPriority(
-        deviceId: String, priority: ConnectionPriority
-    ): Single<RequestConnectionPriorityResult> =
-        getConnection(deviceId).switchMapSingle<RequestConnectionPriorityResult> { connectionResult ->
-            when (connectionResult) {
-                is EstablishedConnection -> connectionResult.rxConnection.requestConnectionPriority(
-                    priority.code, 2, TimeUnit.SECONDS
-                ).toSingle {
-                    RequestConnectionPrioritySuccess(deviceId)
-                }
-
-                is EstablishConnectionFailure -> Single.fromCallable {
-                    RequestConnectionPriorityFailed(deviceId, connectionResult.errorMessage)
-                }
-            }
-        }.first(RequestConnectionPriorityFailed(deviceId, "Unknown failure"))
-
-    // enable this for extra debug output on the android stack
-    private fun enableDebugLogging() = RxBleClient.updateLogOptions(
-        LogOptions.Builder().setLogLevel(LogConstants.VERBOSE)
-            .setMacAddressLogSetting(LogConstants.MAC_ADDRESS_FULL)
-            .setUuidsLogSetting(LogConstants.UUIDS_FULL).setShouldLogAttributeValues(true)
-            .build()
-    )
 
     override fun isDeviceConnected(deviceId: String): Boolean {
         return checkForActiveConnection(deviceId)

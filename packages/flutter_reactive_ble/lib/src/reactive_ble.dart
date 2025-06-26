@@ -11,7 +11,6 @@ import 'package:flutter_reactive_ble/src/rx_ext/repeater.dart';
 import 'package:meta/meta.dart';
 import 'package:reactive_ble_mobile/reactive_ble_mobile.dart';
 import 'package:reactive_ble_platform_interface/reactive_ble_platform_interface.dart';
-import 'package:flutter_reactive_ble/src/central_connector.dart';
 
 import '../flutter_reactive_ble.dart';
 import 'central_connector.dart';
@@ -47,6 +46,12 @@ class FlutterReactiveBle {
   FlutterReactiveBle._() {
     _trackStatus();
   }
+
+  /// Sets the verbosity of debug output.
+  ///
+  /// Use [LogLevel.verbose] for full debug output. Make sure to  run this only for debugging purposes.
+  /// Use [LogLevel.none] to disable logging. This is also the default.
+  set logLevel(LogLevel logLevel) => _debugLogger.logLevel = logLevel;
 
   /// Registry that keeps track of all BLE devices found during a BLE scan.
   final scanRegistry = DiscoveredDevicesRegistryImpl.standard();
@@ -117,6 +122,9 @@ class FlutterReactiveBle {
 
   Stream<CharacteristicValue> get _centralDataChangedStream =>
       _centralConnector.centralDataChangedStream;
+
+  Stream<void> get _didModifyServicesStream =>
+      _centralConnector.didModifyServicesValueStream;
 
   Future<void>? _initialization;
 
@@ -536,13 +544,10 @@ class FlutterReactiveBle {
     return chars.single;
   }
 
-  /// Sets the verbosity of debug output.
-  ///
-  /// Use [LogLevel.verbose] for full debug output. Make sure to  run this only for debugging purposes.
-  /// Use [LogLevel.none] to disable logging. This is also the default.
-  set logLevel(LogLevel logLevel) => _debugLogger.logLevel = logLevel;
-
   LogLevel get logLevel => _debugLogger.logLevel;
+
+  Future<bool> isDeviceConnected(String deviceId) =>
+      _blePlatform.isDeviceConnected(deviceId);
 }
 
 /// An instance of this object should not be used after its device has lost its connection.
@@ -656,7 +661,7 @@ class Characteristic {
             (update.connectionState == DeviceConnectionState.disconnecting ||
                 update.connectionState == DeviceConnectionState.disconnected ||
                 update.connectionState ==
-                    DeviceConnectionState.forcedisconnected))
+                    DeviceConnectionState.forceDisconnected))
         .cast<void>()
         .firstWhere((_) => true, orElse: () {});
 
@@ -674,14 +679,6 @@ class Characteristic {
         );
   }
 
-  /// Sets the verbosity of debug output.
-  ///
-  /// Use [LogLevel.verbose] for full debug output. Make sure to  run this only for debugging purposes.
-  /// Use [LogLevel.none] to disable logging. This is also the default.
-  set logLevel(LogLevel logLevel) => _debugLogger.logLevel = logLevel;
-
-  Future<bool> isDeviceConnected(String deviceId) =>
-      _blePlatform.isDeviceConnected(deviceId);
   // A Characteristic becomes invalid when its device gets disconnected. After reconnecting to the device,
   // services and characteristics have to be rediscovered
   bool _valid = true;

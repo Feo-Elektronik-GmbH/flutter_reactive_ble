@@ -11,7 +11,9 @@ dependencies:
   flutter:
     sdk: flutter
   protobuf: ^3.0.0
-  reactive_ble_platform_interface: ^5.4.0
+#  reactive_ble_platform_interface: ^5.4.0
+  reactive_ble_platform_interface:
+    path: ../reactive_ble_platform_interface
 #  reactive_ble_platform_interface:
 #    git:
 #      url: https://github.com/ben91187/flutter_reactive_ble.git
@@ -24,9 +26,9 @@ dev_dependencies:
     sdk: flutter
   mockito: ^5.0.14
 
-dependency_overrides:
-  reactive_ble_platform_interface:
-    path: ../reactive_ble_platform_interface
+#dependency_overrides:
+#  reactive_ble_platform_interface:
+#    path: ../reactive_ble_platform_interface
 
 flutter:
   plugin:
