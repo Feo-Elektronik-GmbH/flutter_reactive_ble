@@ -456,7 +456,13 @@ class PluginController {
 
     private fun removeInetBoxBonding(call: MethodCall, result: Result) {
         val macAddressInfo = pb.BtMacAddressInfo.parseFrom(call.arguments as ByteArray)
-        result.success(bleClient.removeInetBoxBonding(macAddressInfo.deviceId, macAddressInfo.forceDelete))
+        result.success(
+            bleClient.removeInetBoxBonding(
+                macAddressInfo.deviceId,
+                macAddressInfo.forceDelete,
+                null
+            )
+        )
     }
 
     private fun addGattCharacteristic(call: MethodCall, result: Result) {
