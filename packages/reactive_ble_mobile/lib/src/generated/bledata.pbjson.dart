@@ -41,6 +41,7 @@ const DeviceScanInfo$json = {
     {'1': 'manufacturerData', '3': 6, '4': 1, '5': 12, '10': 'manufacturerData'},
     {'1': 'serviceUuids', '3': 7, '4': 3, '5': 11, '6': '.Uuid', '10': 'serviceUuids'},
     {'1': 'rssi', '3': 5, '4': 1, '5': 5, '10': 'rssi'},
+    {'1': 'isConnectable', '3': 8, '4': 1, '5': 11, '6': '.IsConnectable', '10': 'isConnectable'},
   ],
 };
 
@@ -50,7 +51,8 @@ final $typed_data.Uint8List deviceScanInfoDescriptor = $convert.base64Decode(
     'dmYWlsdXJlGAMgASgLMg8uR2VuZXJpY0ZhaWx1cmVSB2ZhaWx1cmUSMwoLc2VydmljZURhdGEY'
     'BCADKAsyES5TZXJ2aWNlRGF0YUVudHJ5UgtzZXJ2aWNlRGF0YRIqChBtYW51ZmFjdHVyZXJEYX'
     'RhGAYgASgMUhBtYW51ZmFjdHVyZXJEYXRhEikKDHNlcnZpY2VVdWlkcxgHIAMoCzIFLlV1aWRS'
-    'DHNlcnZpY2VVdWlkcxISCgRyc3NpGAUgASgFUgRyc3Np');
+    'DHNlcnZpY2VVdWlkcxISCgRyc3NpGAUgASgFUgRyc3NpEjQKDWlzQ29ubmVjdGFibGUYCCABKA'
+    'syDi5Jc0Nvbm5lY3RhYmxlUg1pc0Nvbm5lY3RhYmxl');
 
 @$core.Deprecated('Use connectToDeviceRequestDescriptor instead')
 const ConnectToDeviceRequest$json = {
@@ -285,6 +287,8 @@ const CharacteristicAddress$json = {
     {'1': 'deviceId', '3': 1, '4': 1, '5': 9, '10': 'deviceId'},
     {'1': 'serviceUuid', '3': 2, '4': 1, '5': 11, '6': '.Uuid', '10': 'serviceUuid'},
     {'1': 'characteristicUuid', '3': 3, '4': 1, '5': 11, '6': '.Uuid', '10': 'characteristicUuid'},
+    {'1': 'serviceInstanceId', '3': 4, '4': 1, '5': 9, '10': 'serviceInstanceId'},
+    {'1': 'characteristicInstanceId', '3': 5, '4': 1, '5': 9, '10': 'characteristicInstanceId'},
   ],
 };
 
@@ -292,7 +296,9 @@ const CharacteristicAddress$json = {
 final $typed_data.Uint8List characteristicAddressDescriptor = $convert.base64Decode(
     'ChVDaGFyYWN0ZXJpc3RpY0FkZHJlc3MSGgoIZGV2aWNlSWQYASABKAlSCGRldmljZUlkEicKC3'
     'NlcnZpY2VVdWlkGAIgASgLMgUuVXVpZFILc2VydmljZVV1aWQSNQoSY2hhcmFjdGVyaXN0aWNV'
-    'dWlkGAMgASgLMgUuVXVpZFISY2hhcmFjdGVyaXN0aWNVdWlk');
+    'dWlkGAMgASgLMgUuVXVpZFISY2hhcmFjdGVyaXN0aWNVdWlkEiwKEXNlcnZpY2VJbnN0YW5jZU'
+    'lkGAQgASgJUhFzZXJ2aWNlSW5zdGFuY2VJZBI6ChhjaGFyYWN0ZXJpc3RpY0luc3RhbmNlSWQY'
+    'BSABKAlSGGNoYXJhY3RlcmlzdGljSW5zdGFuY2VJZA==');
 
 @$core.Deprecated('Use serviceDataEntryDescriptor instead')
 const ServiceDataEntry$json = {
@@ -370,6 +376,7 @@ const DiscoveredService$json = {
     {'1': 'characteristicUuids', '3': 2, '4': 3, '5': 11, '6': '.Uuid', '10': 'characteristicUuids'},
     {'1': 'includedServices', '3': 3, '4': 3, '5': 11, '6': '.DiscoveredService', '10': 'includedServices'},
     {'1': 'characteristics', '3': 4, '4': 3, '5': 11, '6': '.DiscoveredCharacteristic', '10': 'characteristics'},
+    {'1': 'serviceInstanceId', '3': 5, '4': 1, '5': 9, '10': 'serviceInstanceId'},
   ],
 };
 
@@ -379,7 +386,8 @@ final $typed_data.Uint8List discoveredServiceDescriptor = $convert.base64Decode(
     'VVdWlkEjcKE2NoYXJhY3RlcmlzdGljVXVpZHMYAiADKAsyBS5VdWlkUhNjaGFyYWN0ZXJpc3Rp'
     'Y1V1aWRzEj4KEGluY2x1ZGVkU2VydmljZXMYAyADKAsyEi5EaXNjb3ZlcmVkU2VydmljZVIQaW'
     '5jbHVkZWRTZXJ2aWNlcxJDCg9jaGFyYWN0ZXJpc3RpY3MYBCADKAsyGS5EaXNjb3ZlcmVkQ2hh'
-    'cmFjdGVyaXN0aWNSD2NoYXJhY3RlcmlzdGljcw==');
+    'cmFjdGVyaXN0aWNSD2NoYXJhY3RlcmlzdGljcxIsChFzZXJ2aWNlSW5zdGFuY2VJZBgFIAEoCV'
+    'IRc2VydmljZUluc3RhbmNlSWQ=');
 
 @$core.Deprecated('Use discoveredCharacteristicDescriptor instead')
 const DiscoveredCharacteristic$json = {
@@ -392,6 +400,7 @@ const DiscoveredCharacteristic$json = {
     {'1': 'isWritableWithoutResponse', '3': 5, '4': 1, '5': 8, '10': 'isWritableWithoutResponse'},
     {'1': 'isNotifiable', '3': 6, '4': 1, '5': 8, '10': 'isNotifiable'},
     {'1': 'isIndicatable', '3': 7, '4': 1, '5': 8, '10': 'isIndicatable'},
+    {'1': 'characteristicInstanceId', '3': 8, '4': 1, '5': 9, '10': 'characteristicInstanceId'},
   ],
 };
 
@@ -403,7 +412,32 @@ final $typed_data.Uint8List discoveredCharacteristicDescriptor = $convert.base64
     'Nwb25zZRgEIAEoCFIWaXNXcml0YWJsZVdpdGhSZXNwb25zZRI8Chlpc1dyaXRhYmxlV2l0aG91'
     'dFJlc3BvbnNlGAUgASgIUhlpc1dyaXRhYmxlV2l0aG91dFJlc3BvbnNlEiIKDGlzTm90aWZpYW'
     'JsZRgGIAEoCFIMaXNOb3RpZmlhYmxlEiQKDWlzSW5kaWNhdGFibGUYByABKAhSDWlzSW5kaWNh'
-    'dGFibGU=');
+    'dGFibGUSOgoYY2hhcmFjdGVyaXN0aWNJbnN0YW5jZUlkGAggASgJUhhjaGFyYWN0ZXJpc3RpY0'
+    'luc3RhbmNlSWQ=');
+
+@$core.Deprecated('Use readRssiRequestDescriptor instead')
+const ReadRssiRequest$json = {
+  '1': 'ReadRssiRequest',
+  '2': [
+    {'1': 'deviceId', '3': 1, '4': 1, '5': 9, '10': 'deviceId'},
+  ],
+};
+
+/// Descriptor for `ReadRssiRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List readRssiRequestDescriptor = $convert.base64Decode(
+    'Cg9SZWFkUnNzaVJlcXVlc3QSGgoIZGV2aWNlSWQYASABKAlSCGRldmljZUlk');
+
+@$core.Deprecated('Use readRssiResultDescriptor instead')
+const ReadRssiResult$json = {
+  '1': 'ReadRssiResult',
+  '2': [
+    {'1': 'rssi', '3': 1, '4': 1, '5': 5, '10': 'rssi'},
+  ],
+};
+
+/// Descriptor for `ReadRssiResult`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List readRssiResultDescriptor = $convert.base64Decode(
+    'Cg5SZWFkUnNzaVJlc3VsdBISCgRyc3NpGAEgASgFUgRyc3Np');
 
 @$core.Deprecated('Use uuidDescriptor instead')
 const Uuid$json = {
@@ -431,6 +465,9 @@ final $typed_data.Uint8List genericFailureDescriptor = $convert.base64Decode(
     'Cg5HZW5lcmljRmFpbHVyZRISCgRjb2RlGAEgASgFUgRjb2RlEhgKB21lc3NhZ2UYAiABKAlSB2'
     '1lc3NhZ2U=');
 
+@$core.Deprecated('Use isConnectableDescriptor instead')
+const IsConnectable$json = {
+  '1': 'IsConnectable',
 @$core.Deprecated('Use getConnectionRequestDescriptor instead')
 const GetConnectionRequest$json = {
   '1': 'GetConnectionRequest',
@@ -459,11 +496,15 @@ final $typed_data.Uint8List getConnectionInfoDescriptor = $convert.base64Decode(
 const BtMacAddressInfo$json = {
   '1': 'BtMacAddressInfo',
   '2': [
+    {'1': 'code', '3': 1, '4': 1, '5': 5, '10': 'code'},
     {'1': 'deviceId', '3': 1, '4': 1, '5': 9, '10': 'deviceId'},
     {'1': 'forceDelete', '3': 2, '4': 1, '5': 8, '10': 'forceDelete'},
   ],
 };
 
+/// Descriptor for `IsConnectable`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List isConnectableDescriptor = $convert.base64Decode(
+    'Cg1Jc0Nvbm5lY3RhYmxlEhIKBGNvZGUYASABKAVSBGNvZGU=');
 /// Descriptor for `BtMacAddressInfo`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List btMacAddressInfoDescriptor = $convert.base64Decode(
     'ChBCdE1hY0FkZHJlc3NJbmZvEhoKCGRldmljZUlkGAEgASgJUghkZXZpY2VJZBIgCgtmb3JjZU'

@@ -1,6 +1,3 @@
-import 'package:collection/collection.dart';
-import 'package:flutter_reactive_ble/src/device_scanner.dart';
-import 'package:flutter_reactive_ble/src/rx_ext/repeater.dart';
 import 'package:reactive_ble_platform_interface/reactive_ble_platform_interface.dart';
 
 abstract class CentralConnector {

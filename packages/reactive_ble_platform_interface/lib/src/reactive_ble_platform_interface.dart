@@ -13,7 +13,7 @@ abstract class ReactiveBlePlatform extends PlatformInterface {
   ReactiveBlePlatform() : super(token: _token);
   static final Object _token = Object();
 
-  static late ReactiveBlePlatform _instance;
+  static ReactiveBlePlatform _instance = _PlaceholderImplementation();
 
   static ReactiveBlePlatform get instance => _instance;
 
@@ -108,6 +108,11 @@ abstract class ReactiveBlePlatform extends PlatformInterface {
     throw UnimplementedError('clearGattCache() has not been implemented.');
   }
 
+  Future<int> readRssi(String deviceId) async {
+    throw UnimplementedError(
+        'readRssi(String deviceId) has not been implemented.');
+  }
+
   /// Connects to a specific device and the connection remains `established` until
   /// the stream is `cancelled` or the connection is closed by the peripheral.
   ///
@@ -133,13 +138,17 @@ abstract class ReactiveBlePlatform extends PlatformInterface {
     throw UnimplementedError('discoverServices has not been implemented.');
   }
 
+  Future<List<DiscoveredService>> getDiscoverServices(String deviceId) {
+    throw UnimplementedError('getDiscoverServices has not been implemented.');
+  }
+
   /// Performs service discovery on the peripheral and returns the discovered
   /// services.
   ///
   /// This operation can only succeed when the host is `connected` with the
   /// peripheral. Only the success or failure of this operation should be propagated
   /// to this stream. The read value is distributed to [charValueUpdateStream].
-  Stream<void> readCharacteristic(QualifiedCharacteristic characteristic) {
+  Stream<void> readCharacteristic(CharacteristicInstance characteristic) {
     throw UnimplementedError('readCharacteristic has not been implemented.');
   }
 
@@ -149,7 +158,7 @@ abstract class ReactiveBlePlatform extends PlatformInterface {
   /// When implement this operation on the platform make sure that you return a
   /// response only when the peripheral `acknowledged` the write operation
   Future<WriteCharacteristicInfo> writeCharacteristicWithResponse(
-    QualifiedCharacteristic characteristic,
+    CharacteristicInstance characteristic,
     List<int> value,
   ) {
     throw UnimplementedError(
@@ -162,30 +171,30 @@ abstract class ReactiveBlePlatform extends PlatformInterface {
   /// When implementing this operation on the platform make sure that it directly
   /// returns a response to the dart layer when the command arrived.
   Future<WriteCharacteristicInfo> writeCharacteristicWithoutResponse(
-    QualifiedCharacteristic characteristic,
+    CharacteristicInstance characteristic,
     List<int> value,
   ) {
     throw UnimplementedError(
         'writeCharacteristicWithoutResponse has not been implemented.');
   }
 
-  /// Starts subscribing to notifications for a specificied characteristic.
+  /// Starts subscribing to notifications for a specified characteristic.
   ///
   /// This stream only returns the result of the operation. Value updates should
   /// be propagated to [charValueUpdateStream].
   Stream<void> subscribeToNotifications(
-    QualifiedCharacteristic characteristic,
+    CharacteristicInstance characteristic,
   ) {
     throw UnimplementedError(
         'subscribeToNotifications has not been implemented.');
   }
 
-  /// Stops subscribing to notifications for a specificied characteristic.
+  /// Stops subscribing to notifications for a specified characteristic.
   Future<void> stopSubscribingToNotifications(
-    QualifiedCharacteristic characteristic,
+    CharacteristicInstance characteristic,
   ) {
     throw UnimplementedError(
-        'stopSubscribingToNotifiations has not been implemented.');
+        'stopSubscribingToNotifications has not been implemented.');
   }
 
   /// Requests a specific MTU for a connected device.
@@ -200,7 +209,7 @@ abstract class ReactiveBlePlatform extends PlatformInterface {
   Future<ConnectionPriorityInfo> requestConnectionPriority(
       String deviceId, ConnectionPriority priority) {
     throw UnimplementedError(
-        'requesConnectionPriority has not been implemented.');
+        'requestConnectionPriority has not been implemented.');
   }
 
   Future<void> startAdvertising() {
@@ -247,3 +256,5 @@ abstract class ReactiveBlePlatform extends PlatformInterface {
     throw UnimplementedError('IsDeviceConnected has not been implemented.');
   }
 }
+
+class _PlaceholderImplementation extends ReactiveBlePlatform {}

@@ -2,7 +2,7 @@ import 'package:meta/meta.dart';
 
 import 'uuid.dart';
 
-/// Specific BLE characteristic for a BLE device characterised by [deviceId], [serviceId] and
+/// Specific BLE characteristic for a BLE device characterized by [deviceId], [serviceId] and
 /// [characteristicId].
 @immutable
 class QualifiedCharacteristic {
@@ -31,7 +31,8 @@ class QualifiedCharacteristic {
       deviceId.hashCode;
 
   @override
-  bool operator ==(dynamic other) =>
+  bool operator ==(Object other) =>
+      other is QualifiedCharacteristic &&
       runtimeType == other.runtimeType &&
       characteristicId == other.characteristicId &&
       serviceId == other.serviceId &&
