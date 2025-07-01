@@ -1,3 +1,8 @@
+# TAG v5.4.1 - Test
+
+- Merge changes from Philips Hue Master Branch
+- Fixed merge issues and restored old behavior
+
 # TAG v2.0.0 - Test
 
 - added force flag to force deletion of inet box bonding
