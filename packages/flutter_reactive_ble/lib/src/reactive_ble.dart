@@ -217,7 +217,6 @@ class FlutterReactiveBle {
           {bool forceDelete = false}) async =>
       _blePlatform.removeInetBoxBonding(address, forceDelete: forceDelete);
 
-  @Deprecated("Deprecated because of applying the new API")
   Future<void> writeLocalCharacteristic(
       QualifiedCharacteristic characteristic, List<int> value) async {
     await initialize();

@@ -236,7 +236,6 @@ abstract class ReactiveBlePlatform extends PlatformInterface {
     throw UnimplementedError('addGattCharacteristic has not been implemented.');
   }
 
-  @Deprecated("Use writeCharacteristicWith(out)Response instead")
   Future<void> writeLocalCharacteristic(
       QualifiedCharacteristic characteristic, List<int> value) {
     throw UnimplementedError(

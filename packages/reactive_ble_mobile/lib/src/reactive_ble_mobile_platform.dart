@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:reactive_ble_platform_interface/reactive_ble_platform_interface.dart';
 
@@ -308,19 +309,31 @@ class ReactiveBleMobilePlatform extends ReactiveBlePlatform {
             (Object e) => print("Error adding gattcharacteristic: $e"),
           );
 
-  @Deprecated("Use writeCharacteristicWith(out)Response instead")
   @override
   Future<void> writeLocalCharacteristic(
     QualifiedCharacteristic characteristic,
     List<int> value,
   ) async {
-    /*_bleMethodChannel.invokeMethod<List<int>>(
-        "writeLocalCharacteristic",
-        _argsToProtobufConverter
-            .createWriteCharacteristicRequest(characteristic, value)
-            .writeToBuffer(),
-      );*/
-    throw UnimplementedError("This method is deprecated");
+    await _bleMethodChannel
+        .invokeMethod<List<int>>(
+          "writeLocalCharacteristic",
+          _argsToProtobufConverter
+              .createWriteCharacteristicRequest(
+                  CharacteristicInstance(
+                      characteristicId: characteristic.characteristicId,
+                      characteristicInstanceId:
+                          characteristic.characteristicId.hashCode.toString(),
+                      serviceId: characteristic.serviceId,
+                      serviceInstanceId:
+                          characteristic.serviceId.hashCode.toString(),
+                      deviceId: characteristic.deviceId),
+                  value)
+              .writeToBuffer(),
+        )
+        .catchError((error, stackTrace) {
+      print(error);
+      print(stackTrace);
+    });
   }
 
   @override
