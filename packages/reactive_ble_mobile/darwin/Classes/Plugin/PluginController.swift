@@ -53,6 +53,15 @@ final class PluginController {
                 let isConnectable = (advertisementData[CBAdvertisementDataIsConnectable] as? NSNumber)?.boolValue
                 let manufacturerData = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data ?? Data()
                 let name = advertisementData[CBAdvertisementDataLocalNameKey] as? String ?? peripheral.name ?? String()
+                let serviceDataEntries = serviceData.map { entry in
+                    ServiceDataEntry.with {
+                        $0.serviceUuid = Uuid.with { $0.data = entry.key.data }
+                        $0.data = entry.value
+                    }
+                }
+                let serviceUuidsEntries = serviceUuids.map { entry in
+                    Uuid.with { $0.data = entry.data }
+                }
                 let deviceDiscoveryMessage = DeviceScanInfo.with {
                     $0.id = peripheral.identifier.uuidString
                     $0.name = name
@@ -64,14 +73,8 @@ final class PluginController {
                     case .some(let isConnectable):
                       $0.isConnectable.code = isConnectable ? 2 : 1
                     }
-                    $0.serviceData = serviceData
-                        .map { entry in
-                            ServiceDataEntry.with {
-                                $0.serviceUuid = Uuid.with { $0.data = entry.key.data }
-                                $0.data = entry.value
-                            }
-                        }
-                    $0.serviceUuids = serviceUuids.map { entry in Uuid.with { $0.data = entry.data }}
+                    $0.serviceData = serviceDataEntries
+                    $0.serviceUuids = serviceUuidsEntries
                     $0.manufacturerData = manufacturerData
                 }
 

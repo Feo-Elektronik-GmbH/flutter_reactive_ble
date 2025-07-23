@@ -210,7 +210,7 @@ public class SwiftReactiveBlePlugin: NSObject, FlutterPlugin {
         }),
         AnyPlatformMethod(UnaryPlatformMethod(name: "readRssi") { (name, context, args: ReadRssiRequest, completion) in
             context.readRssi(name: name, args: args, completion: completion)
-        })
+        }),
         AnyPlatformMethod(NullaryPlatformMethod(name: "startAdvertising") { (name, context, completion) in
             context.startAdvertising(name: name, completion: completion)
         }),

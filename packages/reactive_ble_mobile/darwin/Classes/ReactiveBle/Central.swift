@@ -18,9 +18,9 @@ final class Central {
     typealias ConnectionChangeHandler = (Central, CBPeripheral, ConnectionChange) -> Void
     typealias ServicesWithCharacteristicsDiscoveryHandler = (Central, CBPeripheral, [Error]) -> Void
     typealias CharacteristicNotifyCompletionHandler = (Central, Error?) -> Void
-    typealias CharacteristicSubscribedByCentralHandler = (Central, QualifiedCharacteristic, Data?, Error?) -> Void//(Central, CBCentral, CBCharacteristic) -> Void
+    typealias CharacteristicSubscribedByCentralHandler = (Central, CharacteristicInstance, Data?, Error?) -> Void
     typealias SubChangeHandler = (Central, CBCentral, CBCharacteristic) -> Void
-    typealias CharRequestHandler = (Central, CBPeripheralManager, QualifiedCharacteristic, Data?) -> Void
+    typealias CharRequestHandler = (Central, CBPeripheralManager, CharacteristicInstance, Data?) -> Void
     typealias CharacteristicValueUpdateHandler = (Central, CharacteristicInstance, Data?, Error?) -> Void
     typealias CharacteristicWriteCompletionHandler = (Central, CharacteristicInstance, Error?) -> Void
     typealias ConnectionStateCallback = (Central, Bool) -> Void
@@ -117,10 +117,15 @@ final class Central {
                 self.mConnectedCentral = connectedCentral
             },
             onCharRequest: papply(weak: self) { central, peripheral, request in
-                            //print("request: ", request)
-                onCharRequest(central, peripheral, QualifiedCharacteristic(request.characteristic), request.value)
+                //print("request: ", request)
+                do {
+                    let characteristicInstance = try CharacteristicInstance(request.characteristic)
+                    onCharRequest(central, peripheral, characteristicInstance, request.value)
+                } catch {
+                    print("Error while generating CharacteristicInstance: \(error)")
+                }
             }
-            )
+        )
         self.centralManagerDelegate = CentralManagerDelegate(
             onStateChange: papply(weak: self) { central, state in
                 if state != .poweredOn {
@@ -318,16 +323,16 @@ final class Central {
 
         sampleChar = UartCharRx;
 
-        service1.characteristics = [Characteristic1]
-        service2.characteristics = [Characteristic2]
-        service3.characteristics = [Characteristic3]
-        uartService.characteristics = [UartCharRx, UartCharTx]
+        self.service1.characteristics = [Characteristic1]
+        self.service2.characteristics = [Characteristic2]
+        self.service3.characteristics = [Characteristic3]
+        self.uartService.characteristics = [UartCharRx, UartCharTx]
 
         // TODO: LINE BELOW WAS COMMENTED OUT! CHECK WHY!?
-        peripheralManager.add(service1)
-        peripheralManager.add(service2)
-        peripheralManager.add(service3)
-        peripheralManager.add(uartService)
+        peripheralManager.add(self.service1)
+        peripheralManager.add(self.service2)
+        peripheralManager.add(self.service3)
+        peripheralManager.add(self.uartService)
     }
 
     func startGattServer() {

@@ -14,40 +14,52 @@ struct CharacteristicInstance: Equatable {
 extension CharacteristicInstance {
 
     init(_ characteristic: CBCharacteristic) throws {
-        guard let service = characteristic.service
-        else {
-            throw Failure.serviceNotFound
-        }
+//        guard let service = characteristic.service
+//        else {
+//            throw Failure.serviceNotFound
+//        }
+//
+//        print("characteristic: \(characteristic)")
+//        print("service: \(service)")
+//
+//
+//        print("1. should throw but commented out for testing purposes")
+//        guard let peripheral = service.peripheral
+//        else {
+//            throw Failure.peripheralNotFound
+//        }
+//
+//        print("2. should throw but commented out for testing purposes")
+//        guard
+//            // Since CBCharacteristic has no field that identifies a specific instance of a characteristic (among those with the same id),
+//            // the index among the characteristics with the same uuid within a service is used as identification. This assumes characteristics
+//            // aren't reordered when new charcteristics are discovered later.
+//            let characteristicIndex = service.characteristics?.filter({ c in c.uuid == characteristic.uuid }).index(of: characteristic)
+//        else {
+//            throw Failure.characteristicNotFound
+//        }
+//
+//        print("3. should throw but commented out for testing purposes")
+//        guard
+//            // Since CBService has no field that identifies a specific instance of a service (among those with the same id),
+//            // the index among the services with the same uuid is used as identification. This assumes services are not reordered when
+//            // new services are discovered later.
+//            let serviceIndex = peripheral.services?.filter({ s in s.uuid == service.uuid }).index(of: service)
+//        else {
+//            throw Failure.serviceNotFound
+//        }
 
-        guard let peripheral = service.peripheral
-        else {
-            throw Failure.peripheralNotFound
-        }
-
-        guard
-            // Since CBCharacteristic has no field that identifies a specific instance of a characteristic (among those with the same id),
-            // the index among the characteristics with the same uuid within a service is used as identification. This assumes characteristics
-            // aren't reordered when new charcteristics are discovered later.
-            let characteristicIndex = service.characteristics?.filter({ c in c.uuid == characteristic.uuid }).index(of: characteristic)
-        else {
-            throw Failure.characteristicNotFound
-        }
-
-        guard
-            // Since CBService has no field that identifies a specific instance of a service (among those with the same id),
-            // the index among the services with the same uuid is used as identification. This assumes services are not reordered when
-            // new services are discovered later.
-            let serviceIndex = peripheral.services?.filter({ s in s.uuid == service.uuid }).index(of: service)
-        else {
-            throw Failure.serviceNotFound
+        var peripheralIdentifier = UUID()
+        if characteristic.service?.peripheral?.identifier != nil {
+            peripheralIdentifier = (characteristic.service?.peripheral!.identifier)!
         }
 
         self.init(
             id: characteristic.uuid,
-            instanceID: "\(characteristicIndex)",
-            serviceID: service.uuid,
-            serviceInstanceID: "\(serviceIndex)",
-            peripheralID: peripheral.identifier
+            instanceID: "\(characteristic.uuid.uuidString)",
+            serviceID: characteristic.service!.uuid,
+            serviceInstanceID: "\(characteristic.service!.uuid.uuidString)",
+            peripheralID: peripheralIdentifier,
         )
     }
     

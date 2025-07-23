@@ -24,7 +24,7 @@ final class PeripheralDelegate: NSObject, CBPeripheralDelegate {
         onCharacteristicNotificationStateUpdate: @escaping CharacteristicNotificationStateUpdateHandler,
         onCharacteristicValueUpdate: @escaping CharacteristicValueUpdateHandler,
         onCharacteristicValueWrite: @escaping CharacteristicValueWriteHandler,
-        onReadRssi: @escaping ReadRssiHandler
+        onReadRssi: @escaping ReadRssiHandler,
         onDidModifyServices: @escaping ModifyServicesHandler
     ) {
         self.onServicesDiscovery = onServicesDiscovery
