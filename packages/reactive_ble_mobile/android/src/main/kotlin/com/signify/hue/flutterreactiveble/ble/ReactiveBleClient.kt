@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.ParcelUuid
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.annotation.RequiresPermission
 import androidx.annotation.VisibleForTesting
 import androidx.core.app.ActivityCompat
 import com.polidea.rxandroidble2.LogConstants
@@ -44,6 +45,7 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 import kotlin.collections.component1
 import kotlin.collections.component2
+import kotlin.collections.plusAssign
 import kotlin.random.Random
 
 
@@ -71,6 +73,7 @@ open class ReactiveBleClient(private val context: Context) : BleClient {
             BehaviorSubject.create()
         private val charRequestBehaviorSubject: BehaviorSubject<CharOperationResult> =
             BehaviorSubject.create()
+
         // Changes, if a new device connects with the iNetBox
         private val didModifyServicesBehaviourSubject: PublishSubject<Int> = PublishSubject.create()
         lateinit var rxBleClient: RxBleClient
@@ -82,6 +85,7 @@ open class ReactiveBleClient(private val context: Context) : BleClient {
 
         private var currentAdvertisingSet: AdvertisingSet? = null
         private var includeDeviceName = true
+
 
         private var advertisingSetCallback: AdvertisingSetCallback =
             @RequiresApi(Build.VERSION_CODES.O) object : AdvertisingSetCallback() {
@@ -105,7 +109,6 @@ open class ReactiveBleClient(private val context: Context) : BleClient {
                         Log.e("BLE", "AdvertisingSet is null.")
                         return
                     }
-
                     // Advertising started successfully
                     Log.i(
                         tag,
@@ -211,24 +214,24 @@ open class ReactiveBleClient(private val context: Context) : BleClient {
                     is EstablishedConnection -> {
                     }
 
-                        is EstablishConnectionFailure -> {
-                            connectionUpdateBehaviorSubject.onNext(
-                                ConnectionUpdateError(
-                                    deviceId,
-                                    result.errorMessage,
-                                ),
-                            )
-                        }
+                    is EstablishConnectionFailure -> {
+                        connectionUpdateBehaviorSubject.onNext(
+                            ConnectionUpdateError(
+                                deviceId,
+                                result.errorMessage,
+                            ),
+                        )
                     }
-                }, { error ->
-                    connectionUpdateBehaviorSubject.onNext(
-                        ConnectionUpdateError(
-                            deviceId,
-                            error?.message
-                                ?: "unknown error",
-                        ),
-                    )
-                }),
+                }
+            }, { error ->
+                connectionUpdateBehaviorSubject.onNext(
+                    ConnectionUpdateError(
+                        deviceId,
+                        error?.message
+                            ?: "unknown error",
+                    ),
+                )
+            }),
         )
         Log.i(tag, "connect finished")
     }
@@ -386,14 +389,7 @@ open class ReactiveBleClient(private val context: Context) : BleClient {
         val advertiser: BluetoothLeAdvertiser =
             bluetoothAdapter.getBluetoothLeAdvertiser() ?: return
 
-        val advertiseSettings = AdvertiseSettings.Builder()
-            .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
-            .setConnectable(true)
-            .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM).build()
-
         val SERVICE_UUID = "61808880-b7b3-11E4-b3a4-0002a5d5c51b"
-        val maxBytes: Int = bluetoothAdapter.getLeMaximumAdvertisingDataLength()
-        Log.d(tag, "maxBytes: ${bluetoothAdapter.getLeMaximumAdvertisingDataLength()}")
 
         if (!bluetoothAdapter.isLeExtendedAdvertisingSupported()) {
             includeDeviceName = false
@@ -401,7 +397,9 @@ open class ReactiveBleClient(private val context: Context) : BleClient {
 
         val advertiseData =
             AdvertiseData.Builder().addServiceUuid(ParcelUuid.fromString(SERVICE_UUID))
-                .setIncludeDeviceName(includeDeviceName).build()
+                .setIncludeDeviceName(false).build()
+
+        Log.d(tag, "maxBytes: ${bluetoothAdapter.getLeMaximumAdvertisingDataLength()}")
 
         val scanResponse: AdvertiseData = AdvertiseData.Builder()
             .setIncludeDeviceName(includeDeviceName)
