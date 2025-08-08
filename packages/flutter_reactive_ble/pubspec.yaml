@@ -25,12 +25,12 @@ dependencies:
 #      git:
 #        url: https://github.com/ben91187/flutter_reactive_ble.git
 #        path: packages/reactive_ble_mobile
-#        ref: v5.4.1
+#        ref: v5.4.2
 #    reactive_ble_platform_interface:
 #      git:
 #        url: https://github.com/ben91187/flutter_reactive_ble.git
 #        path: packages/reactive_ble_platform_interface
-#        ref: v5.4.1
+#        ref: v5.4.2
   reactive_ble_mobile:
     path: ../reactive_ble_mobile
   reactive_ble_platform_interface:

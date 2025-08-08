@@ -1,3 +1,7 @@
+# TAG v5.4.2 - Test
+
+- Removed advertising name from advertising data as it breaks the legacy advertiser on android if the device name is too long
+
 # TAG v5.4.1 - Test
 
 - Merge changes from Philips Hue Master Branch
