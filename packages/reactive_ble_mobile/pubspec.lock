@@ -422,10 +422,12 @@ packages:
   reactive_ble_platform_interface:
     dependency: "direct main"
     description:
-      path: "../reactive_ble_platform_interface"
-      relative: true
-    source: path
-    version: "5.4.0"
+      path: "packages/reactive_ble_platform_interface"
+      ref: "v5.4.2"
+      resolved-ref: "600439dd8873ece0f84f485fd1e64553bbc1be35"
+      url: "https://github.com/Feo-Elektronik-GmbH/flutter_reactive_ble.git"
+    source: git
+    version: "5.4.1"
   shelf:
     dependency: transitive
     description:
