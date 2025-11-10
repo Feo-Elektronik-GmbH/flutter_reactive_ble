@@ -1,3 +1,7 @@
+# TAG v5.4.3
+
+- Fix trailing comma
+
 # TAG v5.4.2 - Test
 
 - Removed advertising name from advertising data as it breaks the legacy advertiser on android if the device name is too long
