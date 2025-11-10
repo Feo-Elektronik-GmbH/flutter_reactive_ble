@@ -59,7 +59,7 @@ extension CharacteristicInstance {
             instanceID: "\(characteristic.uuid.uuidString)",
             serviceID: characteristic.service!.uuid,
             serviceInstanceID: "\(characteristic.service!.uuid.uuidString)",
-            peripheralID: peripheralIdentifier,
+            peripheralID: peripheralIdentifier
         )
     }
     
