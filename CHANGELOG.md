@@ -1,3 +1,11 @@
+# TAG v5.4.4
+
+- Fix iOS BLE value-routing regression (#41814): the value-update characteristic identity is
+  again encoded symmetrically with service discovery (numeric instanceId + the real peripheral
+  id) instead of UUID strings, so reads and notifications resolve on iOS. Adds an index
+  bounds-check guard in Central.resolve and a regression test locking the identity-symmetry
+  contract.
+
 # TAG v5.4.3
 
 - Fix trailing comma
