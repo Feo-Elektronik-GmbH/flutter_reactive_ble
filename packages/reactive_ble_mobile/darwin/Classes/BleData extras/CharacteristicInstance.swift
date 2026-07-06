@@ -14,22 +14,24 @@ struct CharacteristicInstance: Equatable {
 extension CharacteristicInstance {
 
     init(_ characteristic: CBCharacteristic) throws {
-        // [refs #44134] Regression fix: the migration commit (aca4d7d) stamped value-update identity
-        // with the characteristic/service UUID string, while service discovery
-        // (PluginController.makeDiscoveredService) stamps the NUMERIC index via `.instanceId?.description`.
-        // Dart's CharacteristicInstance.== compares instanceId + serviceInstanceId (and deviceId) as raw
-        // strings, so read/notify values could never match their discovery-built request → iOS read &
-        // notify-enable futures hung. This restores the pre-regression (5.0.3.4) contract: numeric-index
-        // ids symmetric with discovery, the real peripheral identifier (never a fabricated random UUID),
-        // and drop-on-nil (via the `try?` call sites) instead of crashing on a force-unwrapped service.
+        // [refs #41814] Identity MUST use the same scheme as service discovery
+        // (PluginController.makeDiscoveredService): the NUMERIC index via `.instanceId?.description`, plus the
+        // real peripheral identifier. Dart's CharacteristicInstance.== compares instanceId + serviceInstanceId
+        // + deviceId as raw strings, so the earlier UUID-string / random-peripheral-id encoding (aca4d7d) never
+        // matched read/notify values to their request → the iOS read & notify-enable hang. Keep numeric ids +
+        // real peripheral id for that (central-read) path.
+        //
+        // [refs #44134] BUT the connected-central / GATT-server (peripheral-role) path (Central.onCharRequest)
+        // builds this from a LOCAL characteristic owned by our CBPeripheralManager, whose `service.peripheral`
+        // is nil — there is no remote peripheral. The 5cbb2c8 hardening threw `peripheralNotFound` here and thus
+        // dropped EVERY write the iNet Box sends to our GATT server, including the old-FW SPP data that carries
+        // the firmware version (migration path could never read a FW version). For local characteristics fall
+        // back to a STABLE sentinel id — never a random UUID (the random id was the #41814 root cause); the
+        // peripheral-role stream is not matched by device id, so a constant is safe and does not affect the
+        // central-read path (a remote characteristic always has a non-nil service.peripheral).
         guard let service = characteristic.service
         else {
             throw Failure.serviceNotFound
-        }
-
-        guard let peripheral = service.peripheral
-        else {
-            throw Failure.peripheralNotFound
         }
 
         self.init(
@@ -37,9 +39,13 @@ extension CharacteristicInstance {
             instanceID: characteristic.instanceId?.description ?? "",
             serviceID: service.uuid,
             serviceInstanceID: service.instanceId?.description ?? "",
-            peripheralID: peripheral.identifier
+            peripheralID: service.peripheral?.identifier ?? CharacteristicInstance.localPeripheralID
         )
     }
+
+    /// Stable placeholder peripheral id for LOCAL (GATT-server) characteristics, whose `service.peripheral`
+    /// is nil. Constant (not random) so it can never reintroduce the #41814 identity-mismatch read hang.
+    static let localPeripheralID = UUID(uuidString: "00000000-0000-0000-0000-000000000000")!
     
     private enum Failure: Error, CustomStringConvertible {
 

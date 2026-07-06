@@ -26,6 +26,13 @@ final class PluginController {
     }
     var messageQueue: [CharacteristicValueInfo] = []
     var connectedDeviceSink: EventSink?
+    // [refs #44134] Buffers connection-state updates produced before the connected-device EventChannel is
+    // subscribed (connectedDeviceSink still nil) — e.g. the post-discovery "connected" DeviceInfo on a fast
+    // bonded/cached-GATT connect, where the Dart round-trip that arms the sink loses the race. Drained in
+    // connectedDeviceStreamHandler.onListen; cleared on onCancel, on disconnect, and at connectToDevice
+    // start. Replaces the old fatal assert(false)-on-nil handling that crashed (debug) / silently dropped
+    // the update (release), which prevented reaching the connected/ready state at all.
+    var connectionUpdateQueue: [DeviceInfo] = []
     var characteristicValueUpdateSink: EventSink?
     var connectedCentralSink: EventSink?
     var characteristicCentralValueUpdateSink: EventSink?
@@ -106,8 +113,6 @@ final class PluginController {
                 context.connectedDeviceSink?.add(.success(message))
             },
             onServicesWithCharacteristicsInitialDiscovery: papply(weak: self) { context, central, peripheral, errors in
-                guard let sink = context.connectedDeviceSink
-                else { assert(false); return }
                 print("onServicesWithCharacteristicsInitialDiscovery")
                 let message = DeviceInfo.with {
                     $0.id = peripheral.identifier.uuidString
@@ -121,7 +126,16 @@ final class PluginController {
                     }
                 }
 
-                sink.add(.success(message))
+                // [refs #44134] A nil sink here is a legitimate transient: the connected-device EventChannel
+                // is subscribed only after connectToDevice's method call round-trips, which can lose the race
+                // against a fast bonded/cached-GATT connect. Never assert/drop — buffer the update and let
+                // connectedDeviceStreamHandler.onListen drain it once Dart subscribes. (context is a class,
+                // so append mutates the stored queue directly — not a copy.)
+                if let sink = context.connectedDeviceSink {
+                    sink.add(.success(message))
+                } else {
+                    context.connectionUpdateQueue.append(message)
+                }
             },
             onCharacteristicValueUpdate: papply(weak: self) { context, central, characteristic, value, error in
                 let message = CharacteristicValueInfo.with {
@@ -378,6 +392,10 @@ final class PluginController {
             return
         }
 
+        // [refs #44134] Reset any connection updates buffered for a previous (aborted/undrained) connect
+        // so a stale "connected" cannot leak to this attempt's listener.
+        connectionUpdateQueue.removeAll()
+
         let servicesWithCharacteristicsToDiscover: ServicesWithCharacteristicsToDiscover
         if args.hasServicesWithCharacteristicsToDiscover {
             let items = args.servicesWithCharacteristicsToDiscover.items.reduce(
@@ -449,6 +467,10 @@ final class PluginController {
         }
 
         completion(.success(nil))
+
+        // [refs #44134] Drop any buffered connection updates for this device so a stale "connected"
+        // cannot be delivered to a later listener after an explicit disconnect.
+        connectionUpdateQueue.removeAll()
 
         central.disconnect(from: deviceID)
     }
