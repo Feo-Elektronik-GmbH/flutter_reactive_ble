@@ -64,9 +64,17 @@ public class SwiftReactiveBlePlugin: NSObject, FlutterPlugin {
             context: context,
             onListen: { context, sink in
                 context.connectedDeviceSink = sink
+                // [refs #44134] Drain connection updates buffered before this subscription existed (e.g. the
+                // post-discovery "connected" DeviceInfo from a fast bonded connect). Mirrors the messageQueue
+                // drain used by the characteristic-value handler above.
+                context.connectionUpdateQueue.forEach { msg in
+                    sink.add(.success(msg))
+                }
+                context.connectionUpdateQueue.removeAll()
                 return nil
             },
             onCancel: { context in
+                context.connectionUpdateQueue.removeAll()
                 context.connectedDeviceSink = nil
                 return nil
             }

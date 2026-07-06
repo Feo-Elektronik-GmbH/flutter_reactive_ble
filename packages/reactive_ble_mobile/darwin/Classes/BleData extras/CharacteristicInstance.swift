@@ -14,54 +14,38 @@ struct CharacteristicInstance: Equatable {
 extension CharacteristicInstance {
 
     init(_ characteristic: CBCharacteristic) throws {
-//        guard let service = characteristic.service
-//        else {
-//            throw Failure.serviceNotFound
-//        }
-//
-//        print("characteristic: \(characteristic)")
-//        print("service: \(service)")
-//
-//
-//        print("1. should throw but commented out for testing purposes")
-//        guard let peripheral = service.peripheral
-//        else {
-//            throw Failure.peripheralNotFound
-//        }
-//
-//        print("2. should throw but commented out for testing purposes")
-//        guard
-//            // Since CBCharacteristic has no field that identifies a specific instance of a characteristic (among those with the same id),
-//            // the index among the characteristics with the same uuid within a service is used as identification. This assumes characteristics
-//            // aren't reordered when new charcteristics are discovered later.
-//            let characteristicIndex = service.characteristics?.filter({ c in c.uuid == characteristic.uuid }).index(of: characteristic)
-//        else {
-//            throw Failure.characteristicNotFound
-//        }
-//
-//        print("3. should throw but commented out for testing purposes")
-//        guard
-//            // Since CBService has no field that identifies a specific instance of a service (among those with the same id),
-//            // the index among the services with the same uuid is used as identification. This assumes services are not reordered when
-//            // new services are discovered later.
-//            let serviceIndex = peripheral.services?.filter({ s in s.uuid == service.uuid }).index(of: service)
-//        else {
-//            throw Failure.serviceNotFound
-//        }
-
-        var peripheralIdentifier = UUID()
-        if characteristic.service?.peripheral?.identifier != nil {
-            peripheralIdentifier = (characteristic.service?.peripheral!.identifier)!
+        // [refs #41814] Identity MUST use the same scheme as service discovery
+        // (PluginController.makeDiscoveredService): the NUMERIC index via `.instanceId?.description`, plus the
+        // real peripheral identifier. Dart's CharacteristicInstance.== compares instanceId + serviceInstanceId
+        // + deviceId as raw strings, so the earlier UUID-string / random-peripheral-id encoding (aca4d7d) never
+        // matched read/notify values to their request → the iOS read & notify-enable hang. Keep numeric ids +
+        // real peripheral id for that (central-read) path.
+        //
+        // [refs #44134] BUT the connected-central / GATT-server (peripheral-role) path (Central.onCharRequest)
+        // builds this from a LOCAL characteristic owned by our CBPeripheralManager, whose `service.peripheral`
+        // is nil — there is no remote peripheral. The 5cbb2c8 hardening threw `peripheralNotFound` here and thus
+        // dropped EVERY write the iNet Box sends to our GATT server, including the old-FW SPP data that carries
+        // the firmware version (migration path could never read a FW version). For local characteristics fall
+        // back to a STABLE sentinel id — never a random UUID (the random id was the #41814 root cause); the
+        // peripheral-role stream is not matched by device id, so a constant is safe and does not affect the
+        // central-read path (a remote characteristic always has a non-nil service.peripheral).
+        guard let service = characteristic.service
+        else {
+            throw Failure.serviceNotFound
         }
 
         self.init(
             id: characteristic.uuid,
-            instanceID: "\(characteristic.uuid.uuidString)",
-            serviceID: characteristic.service!.uuid,
-            serviceInstanceID: "\(characteristic.service!.uuid.uuidString)",
-            peripheralID: peripheralIdentifier
+            instanceID: characteristic.instanceId?.description ?? "",
+            serviceID: service.uuid,
+            serviceInstanceID: service.instanceId?.description ?? "",
+            peripheralID: service.peripheral?.identifier ?? CharacteristicInstance.localPeripheralID
         )
     }
+
+    /// Stable placeholder peripheral id for LOCAL (GATT-server) characteristics, whose `service.peripheral`
+    /// is nil. Constant (not random) so it can never reintroduce the #41814 identity-mismatch read hang.
+    static let localPeripheralID = UUID(uuidString: "00000000-0000-0000-0000-000000000000")!
     
     private enum Failure: Error, CustomStringConvertible {
 
